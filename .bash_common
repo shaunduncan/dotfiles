@@ -4,7 +4,12 @@ export ARCHFLAGS='-arch x86_64'
 alias cp='cp -i'
 alias mv='mv -i'
 alias rm='rm -i'
-alias ls='ls -G'
+
+if [ `uname` == 'Darwin' ]; then
+    alias ls='ls -G'
+else
+    alias ls='ls --color'
+fi
 
 if [[ `which mvim` ]]; then 
   alias vim='mvim'
