@@ -1,0 +1,18 @@
+export CLICOLOR=1
+export ARCHFLAGS='-arch x86_64'
+
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias ls='ls -G'
+
+if [[ `which mvim` ]]; then 
+  alias vim='mvim'
+  alias vi='mvim'
+else
+  alias vi='vim'
+fi
+
+if [[ `which ipython` ]]; then
+  alias python='ipython --colors=Linux --autoindent --color-info --no-banner'
+fi
