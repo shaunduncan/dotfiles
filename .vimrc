@@ -58,6 +58,7 @@ set wildmenu
 
 set completeopt=menuone,longest,preview
 set pumheight=6
+set guioptions-=T
 
 set showcmd
 set cul
@@ -85,6 +86,11 @@ hi Cursor guifg=black guibg=magenta
 " #a0ee40 guifg=#000000
 hi User1 guibg=#A6E22E guifg=#222222
 " hi User1 guibg=#FF9933 guifg=#222222
+
+let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
+
+nmap <F11> :NERDTreeToggle<CR>
+nmap <F12> :TagbarToggle<CR>
 
 " FUNCTIONS
 function! Collapse(string)
