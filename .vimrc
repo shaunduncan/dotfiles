@@ -90,12 +90,12 @@ hi User1 guibg=#A6E22E guifg=#222222
 let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
 
 " FUNCTIONS
-function ToggleIDE()
+function! ToggleIDE()
     NERDTreeToggle
     TagbarToggle
 endfunction
 
-command IDE call ToggleIDE()
+command! IDE call ToggleIDE()
 
 function! Collapse(string)
     let threshold = 30
