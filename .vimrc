@@ -89,10 +89,14 @@ hi User1 guibg=#A6E22E guifg=#222222
 
 let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
 
-nmap <F11> :NERDTreeToggle<CR>
-nmap <F12> :TagbarToggle<CR>
-
 " FUNCTIONS
+function ToggleIDE()
+    NERDTreeToggle
+    TagbarToggle
+endfunction
+
+command IDE call ToggleIDE()
+
 function! Collapse(string)
     let threshold = 30
     let total_length = len(a:string)
