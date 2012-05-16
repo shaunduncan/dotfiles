@@ -30,7 +30,7 @@ set encoding=utf-8
 set nofoldenable
 
 set statusline=
-set statusline+=%1*
+set statusline+=%7*
 set statusline+=%-4{GitStatusline()}
 set statusline+=%*
 set statusline+=%{Collapse(expand('%:p'))}   " absolute path truncated
@@ -65,9 +65,6 @@ set cul
 set number
 set path=$PWD/**
 
-let g:molokai_original=1
-colorscheme molokai
-
 set listchars=trail:-
 highlight SpecialKey term=standout ctermbg=white guibg=black
 
@@ -76,18 +73,21 @@ autocmd FileType make setlocal shiftwidth=4 tabstop=4 softtabstop=4
 autocmd BufNewFile,BufRead *.mako,*.mak setlocal ft=html
 autocmd BufNewFile,BufRead *.json setlocal ft=javascript
 
-autocmd BufRead,BufNewFile *.py syntax on
 autocmd BufRead,BufNewFile *.py set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
-let g:netrw_list_hide='^\.,.\(pyc\|pyo\|o\)$'
-
-hi Cursor guifg=black guibg=magenta
-" #a0ee40 guifg=#000000
-hi User1 guibg=#A6E22E guifg=#222222
-" hi User1 guibg=#FF9933 guifg=#222222
 
 let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
+
+" CUSTOM COLORS
+let g:molokai_original=1
+colorscheme molokai
+let g:colors_name="molokai"
+hi Cursor guifg=black guibg=magenta
+hi CursorLine guibg=#555555
+hi Search guifg=#000000 guibg=#FFFF00
+hi User7 guibg=#A6E22E guifg=#222222
+hi Comment guifg=#FFCC99
 
 " FUNCTIONS
 function! ToggleIDE()
@@ -105,16 +105,6 @@ function! Collapse(string)
         return ' ...' . strpart(a:string, difference)
     else
         return a:string
-    endif
-endfunction
-
-function! Getcwd()
-    let current_dir = getcwd()
-    let current_path = expand("%:p:h")
-    if current_dir == current_path
-        return ""
-    else
-        return "cwd: " .current_dir
     endif
 endfunction
 
@@ -198,4 +188,3 @@ function! GitStatusline() abort
   endif
   return ''
 endfunction
-
