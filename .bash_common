@@ -101,35 +101,5 @@ function dbstopall() {
     done
 }
 
-function dbstartall() {
-    echo "What is the matter with? Don't do that...just use med"
-}
-
-function range_review()
-{
-    if [ "$1" == "last" ]; then
-        last_num=`expr $2 + 1`
-        start=`git log -${last_num} | grep "commit " | sed -e "s/commit //" | tail -1`
-        end=`git log -${last_num} | grep "commit " | sed -e "s/commit //" | head -1`
-        start_end="$start:$end"
-
-        branch=`git branch | grep "* " | sed -e "s/* //"`
-        pr_cmd="post-review -o --branch=$branch --guess-description --tracking-branch=origin/$branch --revision_range=$start:$end"
-
-        if [ "$3" == "for" ]; then
-            pr_cmd="$pr_cmd -r $4"
-        fi
-
-        echo "Going to execute: $pr_cmd"
-        read -p "Ok (y/n)? " GO_YN
-        GO_YN=`echo $GO_YN | tr '[:upper:]' '[:lower:]'`
-        if [ "$GO_YN" == "y" ]; then
-            $pr_cmd
-        fi
-    else
-        echo "THIS IS FOR REVISION RANGES ONLY"
-    fi
-}
-
 export PS1="\[[38;5;216m\](\u) \w\[[38;5;196m\] ➜ \[[0m\]"
 export PROMPT_COMMAND="PS1_LABELS"
