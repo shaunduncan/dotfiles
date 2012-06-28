@@ -30,7 +30,9 @@ set encoding=utf-8
 set nofoldenable
 
 set statusline=
-set statusline+=%1*
+set statusline+=%6*
+set statusline+=%-4{VenvName()}
+set statusline+=%7*
 set statusline+=%-4{GitStatusline()}
 set statusline+=%*
 set statusline+=%{Collapse(expand('%:p'))}   " absolute path truncated
@@ -46,8 +48,6 @@ set statusline+=]
 
 set ignorecase
 set smartcase
-map N Nzz
-map n nzz
 set title
 set hlsearch
 set incsearch
@@ -65,29 +65,30 @@ set cul
 set number
 set path=$PWD/**
 
-let g:molokai_original=1
-colorscheme molokai
-
 set listchars=trail:-
 highlight SpecialKey term=standout ctermbg=white guibg=black
 
-autocmd FileType html,xhtml,xml setlocal expandtab shiftwidth=2 tabstop=2 softtabstop=2
+autocmd FileType html,xhtml,xml setlocal expandtab shiftwidth=4 tabstop=4 softtabstop=4
 autocmd FileType make setlocal shiftwidth=4 tabstop=4 softtabstop=4
 autocmd BufNewFile,BufRead *.mako,*.mak setlocal ft=html
 autocmd BufNewFile,BufRead *.json setlocal ft=javascript
 
-autocmd BufRead,BufNewFile *.py syntax on
 autocmd BufRead,BufNewFile *.py set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
-let g:netrw_list_hide='^\.,.\(pyc\|pyo\|o\)$'
-
-hi Cursor guifg=black guibg=magenta
-" #a0ee40 guifg=#000000
-hi User1 guibg=#A6E22E guifg=#222222
-" hi User1 guibg=#FF9933 guifg=#222222
 
 let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
+
+" CUSTOM COLORS
+let g:molokai_original=1
+colorscheme molokai
+let g:colors_name="molokai"
+hi Cursor guifg=black guibg=magenta
+hi CursorLine guibg=#555555
+hi Search guifg=#000000 guibg=#FFFF00
+hi User6 guibg=#FF9933 guifg=#000000
+hi User7 guibg=#A6E22E guifg=#222222
+hi Comment guifg=#FFCC99
 
 " FUNCTIONS
 function! ToggleIDE()
@@ -108,18 +109,24 @@ function! Collapse(string)
     endif
 endfunction
 
-function! Getcwd()
-    let current_dir = getcwd()
-    let current_path = expand("%:p:h")
-    if current_dir == current_path
-        return ""
-    else
-        return "cwd: " .current_dir
-    endif
-endfunction
-
 " Fugitive Customization
 autocmd BufWritePost,BufReadPost,BufNewFile,BufEnter * call s:SetGitModified()
+
+function! VenvName() abort
+    let path_elems = split(expand("%:p"),'/')
+    let venv_name = ''
+    if len(path_elems) > 2
+        if path_elems[0] == 'opt' && path_elems[1] == 'devel'
+            let venv_name = path_elems[2]
+            if strpart(venv_name,0,4) == 'cms_'
+                let venv_name = strpart(venv_name,4)
+            endif
+            return '['.toupper(venv_name).']'
+        endif
+        return ''
+    endif
+    return ''
+endfunction
 
 function! s:SetGitModified() abort
   if !exists('b:git_dir')
@@ -198,4 +205,3 @@ function! GitStatusline() abort
   endif
   return ''
 endfunction
-

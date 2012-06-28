@@ -4,9 +4,6 @@
 [submodule ".vim/bundle/molokai"]
 	path = .vim/bundle/molokai
 	url = http://github.com/tomasr/molokai
-[submodule ".vim/bundle/pytest.vim"]
-	path = .vim/bundle/pytest.vim
-	url = http://github.com/alfredodeza/pytest.vim
 [submodule ".vim/bundle/syntastic"]
 	path = .vim/bundle/syntastic
 	url = http://github.com/scrooloose/syntastic
