@@ -31,3 +31,6 @@
 [submodule ".vim/bundle/vim-vinegar"]
 	path = .vim/bundle/vim-vinegar
 	url = https://github.com/tpope/vim-vinegar
+[submodule ".zsh"]
+	path = .zsh
+	url = https://github.com/robbyrussell/oh-my-zsh
