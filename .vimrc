@@ -1,103 +1,132 @@
 set nocompatible
-behave mswin
 
+" All the plugins
 silent! call pathogen#infect()
+
+" I hate backups and swaps
 set nowritebackup
 set noswapfile
 set nosmartindent
+
 inoremap # X<BS>#
 
-set nowrap
+map q <Nop>
 
+set nowrap  " Don't wrap
+set number  " Line numbers dammit
+
+" Coloring and a hack for tmux. t_ut= will not override the background color
+set t_Co=256
+set t_ut=
+
+" Syntax highlighting please
 syntax on
 filetype on
 filetype plugin on
 filetype indent on
 
+set background=dark
+colorscheme Tomorrow-Night-Bright
+
+" X(name, fg, bg, attr, lcfg, lcbg
+" hi <name> ctermfg=<lcfg> ctermbg=<lcbg>
+
+hi ExtraWhitespace ctermbg=red guibg=red
+match ExtraWhitespace /\s\+$/
+
 set scrolloff=5
 set backspace=indent,eol,start
-set vb
+set visualbell
+set history=10000
 
+" I can haz gui?
 if has("gui_running")
-    set guifont=Consolas:h11
+    set guioptions-=T  " Nix the toolbar
     highlight SpellBad term=underline gui=undercurl guisp=Red
 else
-    set mouse=n
+    " I should be able to see it
+    highlight SpellBad term=standout ctermfg=white term=underline cterm=underline
+    set mouse=c  " It's the terminal pal
 endif
 
+if has('persistent_undo')
+    set undodir=$HOME/.vim/undo
+    set undolevels=10000
+    set undofile
+endif
+
+" Status Line
 set laststatus=2
 set encoding=utf-8
-set nofoldenable
+set showcmd
 
 set statusline=
-set statusline+=%6*
-set statusline+=%-4{VenvName()}
-set statusline+=%7*
-set statusline+=%-4{GitStatusline()}
 set statusline+=%*
-set statusline+=%{Collapse(expand('%:p'))}   " absolute path truncated
+set statusline+=%-4{VenvName()}              " Where the hell am I working?
+set statusline+=%*
+set statusline+=%-4{bondsman#Bail()}         " Show the git state
+set statusline+=%*
+set statusline+=%{Collapse(expand('%:p'))}   " Trancated path
 set statusline+=%*%m%r%h%w
-"set statusline+=\ \ \ %{Collapse(getcwd())}  " current working dir truncated
 set statusline+=%=                           " right align
-set statusline+=\ \ \ \ %y                   " what the file type
+set statusline+=\ \ \ \ %y                   " the type of file
 set statusline+=[
 set statusline+=%3l/                         " Line number with padding
 set statusline+=%L                           " Total lines in the file
 set statusline+=:%2c                         " column number
 set statusline+=]
 
+" Highlight flake errors
+set statusline+=%#ErrorMsg#
+set statusline+=%{khuno#Status('X')}%*
+set statusline+=%*
+
+" Do searching how i prefer
 set ignorecase
 set smartcase
-set title
 set hlsearch
 set incsearch
+
 set showmatch
 
+" Leave it as the filename
+set title
+
+" Because zsh-like
 set wildmode=list:longest,full
 set wildmenu
-
 set completeopt=menuone,longest,preview
-set pumheight=6
-set guioptions-=T
+set pumheight=5
 
-set showcmd
-set cul
-set number
+set nocursorline  " Be careful...
+set nocursorcolumn
 set path=$PWD/**
 
-set listchars=trail:-
-highlight SpecialKey term=standout ctermbg=white guibg=black
-
-autocmd FileType html,xhtml,xml setlocal expandtab shiftwidth=4 tabstop=4 softtabstop=4
-autocmd FileType make setlocal shiftwidth=4 tabstop=4 softtabstop=4
-autocmd BufNewFile,BufRead *.mako,*.mak setlocal ft=html
+" JSON should highlight as javascript
 autocmd BufNewFile,BufRead *.json setlocal ft=javascript
 
+" Autoindent python
 autocmd BufRead,BufNewFile *.py set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
+
+" Go uses tabs, not spaces
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
-let NERDTreeIgnore=['\.vim$', '\~$', '\.pyc$']
+autocmd FileType go setlocal noexpandtab
 
-" CUSTOM COLORS
-let g:molokai_original=1
-colorscheme molokai
-let g:colors_name="molokai"
-hi Cursor guifg=black guibg=magenta
-hi CursorLine guibg=#555555
-hi Search guifg=#000000 guibg=#FFFF00
-hi User6 guibg=#FF9933 guifg=#000000
-hi User7 guibg=#A6E22E guifg=#222222
-hi Comment guifg=#FFCC99
+" PLUGIN SETTINGS
+let g:khuno_max_line_length=110
+let g:coveragepy_rcfile='~/.coveragerc'
+let g:gist_clip_command='xclip -selection clipboard'
+let g:gist_detect_filetype=1
+let g:gist_open_browser_after_post=1
+let g:gist_browser_command='chromium %URL% &'
+let g:gist_show_privates=1
+let g:gist_post_private=1
+let g:github_user='shaunduncan'
+let g:github_token='3c6ed38cb8ce3f4d8d902188d4f901b47b9969ab'
 
 " FUNCTIONS
-function! ToggleIDE()
-    NERDTreeToggle
-    TagbarToggle
-endfunction
-
-command! IDE call ToggleIDE()
-
 function! Collapse(string)
     let threshold = 30
     let total_length = len(a:string)
@@ -109,14 +138,16 @@ function! Collapse(string)
     endif
 endfunction
 
-" Fugitive Customization
-autocmd BufWritePost,BufReadPost,BufNewFile,BufEnter * call s:SetGitModified()
-
 function! VenvName() abort
-    let path_elems = split(expand("%:p"),'/')
+    let full_path = expand("%:p")
+    if strpart(full_path,0,12) == '/Volumes/HDD'
+        let full_path = strpart(full_path,12)
+    endif
+
+    let path_elems = split(full_path,'/')
     let venv_name = ''
     if len(path_elems) > 2
-        if path_elems[0] == 'opt' && path_elems[1] == 'devel'
+        if path_elems[0] == 'opt' && (path_elems[1] == 'devel' || path_elems[1] == 'forks')
             let venv_name = path_elems[2]
             if strpart(venv_name,0,4) == 'cms_'
                 let venv_name = strpart(venv_name,4)
@@ -126,82 +157,4 @@ function! VenvName() abort
         return ''
     endif
     return ''
-endfunction
-
-function! s:SetGitModified() abort
-  if !exists('b:git_dir')
-    return ''
-  endif
-  let repo_name = RepoHead()
-  let modified = GitIsModified() ? '*' : ''
-  let b:git_statusline = '['.repo_name.modified.']'
-endfunction
-
-function! FindGit(type) abort
-    let found = finddir(".git", ".;")
-    if (found !~ '.git')
-        return ""
-    endif
-    " Return the actual directory where .coverage is found
-    if a:type == "dir"
-        return fnamemodify(found, ":h")
-    else
-        return found
-    endif
-endfunction
-
-function! GitIsModified() abort
-    let rvalue = 0
-    " First try to see if we actually have a .git dir
-    let has_git = FindGit('dir')
-    if (has_git == "")
-        return rvalue
-    else
-        let original_dir = getcwd()
-        " change dir to where coverage is
-        " and do all the magic we need
-        if original_dir
-            exe "cd " . has_git
-            let cmd = "git status -s 2> /dev/null""
-            let out = system(cmd)
-            if out != ""
-                let rvalue = 1
-            endif
-            " Finally get back to where we initially where
-            exe "cd " . original_dir
-            return rvalue
-        else
-            return ''
-    endif
-endfunction
-
-function! RepoHead() abort
-  let path = FindGit('repo') . '/HEAD'
-  if ! filereadable(path)
-      return 'NoBranch'
-  endif
-  let repo_name = ''
-  let repo_line =  readfile(path)[0]
-
-  if repo_line =~# '^ref: '
-    let repo_name .= substitute(repo_line, '\v^(.*)/','', '')
-  elseif repo_line =~# '^\x\{40\}$'
-    let repo_name .= repo_line[0:7]
-  endif
-  return repo_name
-endfunction
-
-function! GitStatusline() abort
-  " Note: Works just as long as fugitive is installed
-  " should remove the depedency
-  if exists('b:git_statusline')
-      return b:git_statusline
-  endif
-  if !exists('b:git_dir')
-      return ''
-  else
-      let repo_name = RepoHead()
-      return '['.repo_name.']'
-  endif
-  return ''
 endfunction
