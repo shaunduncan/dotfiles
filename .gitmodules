@@ -1,21 +1,33 @@
 [submodule ".vim/bundle/jacinto.vim"]
 	path = .vim/bundle/jacinto.vim
 	url = http://github.com/alfredodeza/jacinto.vim
-[submodule ".vim/bundle/molokai"]
-	path = .vim/bundle/molokai
-	url = http://github.com/tomasr/molokai
-[submodule ".vim/bundle/syntastic"]
-	path = .vim/bundle/syntastic
-	url = http://github.com/scrooloose/syntastic
 [submodule ".vim/bundle/vim-colors-solarized"]
 	path = .vim/bundle/vim-colors-solarized
 	url = http://github.com/altercation/vim-colors-solarized
 [submodule ".vim/bundle/vim-fugitive"]
 	path = .vim/bundle/vim-fugitive
 	url = http://github.com/tpope/vim-fugitive
-[submodule ".vim/bundle/nerdtree"]
-	path = .vim/bundle/nerdtree
-	url = http://github.com/scrooloose/nerdtree
-[submodule ".vim/bundle/tagbar"]
-	path = .vim/bundle/tagbar
-	url = http://github.com/majutsushi/tagbar
+[submodule ".vim/bundle/bondsman.vim"]
+	path = .vim/bundle/bondsman.vim
+	url = https://github.com/alfredodeza/bondsman.vim
+[submodule ".vim/bundle/coveragepy.vim"]
+	path = .vim/bundle/coveragepy.vim
+	url = https://github.com/alfredodeza/coveragepy.vim
+[submodule ".vim/bundle/gist-vim"]
+	path = .vim/bundle/gist-vim
+	url = https://github.com/mattn/gist-vim
+[submodule ".vim/bundle/jellybeans.vim"]
+	path = .vim/bundle/jellybeans.vim
+	url = https://github.com/nanotech/jellybeans.vim
+[submodule ".vim/bundle/khuno.vim"]
+	path = .vim/bundle/khuno.vim
+	url = https://github.com/alfredodeza/khuno.vim
+[submodule ".vim/bundle/mustache.vim"]
+	path = .vim/bundle/mustache.vim
+	url = https://github.com/juvenn/mustache.vim
+[submodule ".vim/bundle/pytest.vim"]
+	path = .vim/bundle/pytest.vim
+	url = https://github.com/alfredodeza/pytest.vim
+[submodule ".vim/bundle/vim-vinegar"]
+	path = .vim/bundle/vim-vinegar
+	url = https://github.com/tpope/vim-vinegar
