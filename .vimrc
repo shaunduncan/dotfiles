@@ -123,8 +123,6 @@ let g:gist_open_browser_after_post=1
 let g:gist_browser_command='chromium %URL% &'
 let g:gist_show_privates=1
 let g:gist_post_private=1
-let g:github_user='shaunduncan'
-let g:github_token='3c6ed38cb8ce3f4d8d902188d4f901b47b9969ab'
 
 " FUNCTIONS
 function! Collapse(string)
