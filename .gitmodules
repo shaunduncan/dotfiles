@@ -1,12 +1,12 @@
 [submodule ".vim/bundle/jacinto.vim"]
 	path = .vim/bundle/jacinto.vim
-	url = http://github.com/alfredodeza/jacinto.vim
+	url = https://github.com/alfredodeza/jacinto.vim
 [submodule ".vim/bundle/vim-colors-solarized"]
 	path = .vim/bundle/vim-colors-solarized
-	url = http://github.com/altercation/vim-colors-solarized
+	url = https://github.com/altercation/vim-colors-solarized
 [submodule ".vim/bundle/vim-fugitive"]
 	path = .vim/bundle/vim-fugitive
-	url = http://github.com/tpope/vim-fugitive
+	url = https://github.com/tpope/vim-fugitive
 [submodule ".vim/bundle/bondsman.vim"]
 	path = .vim/bundle/bondsman.vim
 	url = https://github.com/alfredodeza/bondsman.vim
