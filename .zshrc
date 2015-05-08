@@ -110,13 +110,6 @@ bindkey '^R' history-incremental-search-backward
 
 unsetopt correctall
 
-# ADDITIONAL MIRRORS
-export PIP_FIND_LINKS="\
-    http://simple.crate.io/ \
-    http://git.ddtc.cmgdigital.com/webrepo/distributions/cmg/ \
-    http://git.ddtc.cmgdigital.com/webrepo/distributions/ext/ \
-    http://git.ddtc.cmgdigital.com/webrepo/distributions/pypi/ \
-"
 export EDITOR="`which vim`"
 
 
