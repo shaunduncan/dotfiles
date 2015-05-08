@@ -9,7 +9,6 @@ plugins=(
     celery
     copydir
     copyfile
-    debian
     django
     docker
     encode64
@@ -49,6 +48,9 @@ PATH=$JAVA_HOME/bin:$PATH:/sbin:$HOME/bin:/opt/android/tools:/opt/android/platfo
 
 # Go Things
 PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+
+# --user installed pip
+PATH=$PATH:$HOME/.local/bin
 
 # Heroku Toolbelt
 export PATH="/usr/local/heroku/bin:$PATH"
@@ -93,8 +95,7 @@ zstyle ':completion:*' users {sduncan,root,cmg}
 export CLICOLOR=1
 export ARCHFLAGS='-arch i386 -arch x86_64'
 
-# PIP CONFIG - ONLY OPERATE IN VIRTUALENV
-export PIP_REQUIRE_VIRTUALENV=true
+# PIP CONFIG
 export PIP_RESPECT_VIRTUALENV=true
 export PIP_DOWNLOAD_CACHE=$HOME/.pip_cache
 
@@ -287,3 +288,5 @@ if [ "$(env | grep VIM)" ]; then
 fi
 
 trap _venv_deactivate EXIT
+
+export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting

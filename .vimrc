@@ -7,6 +7,10 @@ silent! call pathogen#infect()
 set nowritebackup
 set noswapfile
 set nosmartindent
+set ffs=unix
+
+" Clipboard
+set clipboard=unnamedplus
 
 inoremap # X<BS>#
 
@@ -109,9 +113,12 @@ autocmd BufNewFile,BufRead *.json setlocal ft=javascript
 autocmd BufRead,BufNewFile *.py set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 
-" Go uses tabs, not spaces
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
+" Ruby, etc -> indent 2 spaces
+autocmd FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html set ai sw=2 sts=2 et
+
+" Go uses tabs, not spaces
 autocmd FileType go setlocal noexpandtab
 
 " PLUGIN SETTINGS
