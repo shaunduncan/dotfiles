@@ -9,8 +9,29 @@ set noswapfile
 set nosmartindent
 set ffs=unix
 
+" Speeeeeeed
+set lazyredraw
+set ttyfast
+
 " Clipboard
 set clipboard=unnamedplus
+
+" Leader
+let mapleader = "\<Space>"
+
+" Write quickness
+nnoremap <Leader>w :w<CR>
+
+" System clipboard
+vmap <Leader>y "+y
+vmap <Leader>d "+d
+nmap <Leader>p "+p
+nmap <Leader>P "+P
+vmap <Leader>p "+p
+vmap <Leader>P "+P
+
+" Visual line
+nmap <Leader><Leader> V
 
 inoremap # X<BS>#
 
@@ -64,26 +85,31 @@ set laststatus=2
 set encoding=utf-8
 set showcmd
 
-set statusline=
-set statusline+=%*
-set statusline+=%-4{VenvName()}              " Where the hell am I working?
-set statusline+=%*
-set statusline+=%-4{bondsman#Bail()}         " Show the git state
-set statusline+=%*
-set statusline+=%{Collapse(expand('%:p'))}   " Trancated path
-set statusline+=%*%m%r%h%w
-set statusline+=%=                           " right align
-set statusline+=\ \ \ \ %y                   " the type of file
-set statusline+=[
-set statusline+=%3l/                         " Line number with padding
-set statusline+=%L                           " Total lines in the file
-set statusline+=:%2c                         " column number
-set statusline+=]
+"set statusline=
+"set statusline+=%*
+"set statusline+=%-4{VenvName()}              " Where the hell am I working?
+"set statusline+=%*
+"set statusline+=%-4{bondsman#Bail()}         " Show the git state
+"set statusline+=%*
+"set statusline+=%{Collapse(expand('%:p'))}   " Trancated path
+"set statusline+=%*%m%r%h%w
+"set statusline+=%=                           " right align
+"set statusline+=\ \ \ \ %y                   " the type of file
+"set statusline+=[
+"set statusline+=%3l/                         " Line number with padding
+"set statusline+=%L                           " Total lines in the file
+"set statusline+=:%2c                         " column number
+"set statusline+=]
+"
+"" " Highlight flake errors
+"set statusline+=%#ErrorMsg#
+"set statusline+=%{khuno#Status('X')}%*
+"set statusline+=%*
 
-" Highlight flake errors
-set statusline+=%#ErrorMsg#
-set statusline+=%{khuno#Status('X')}%*
-set statusline+=%*
+let g:airline_powerline_fonts=1
+let g:airline_detect_modified=1
+let g:airline_section_z = '%3l/%L:%2c'
+let g:airline_section_warning = "%{khuno#Status('X')}"
 
 " Do searching how i prefer
 set ignorecase
@@ -108,10 +134,21 @@ set path=$PWD/**
 
 " JSON should highlight as javascript
 autocmd BufNewFile,BufRead *.json setlocal ft=javascript
+autocmd BufNewFile,BufRead *.rb setlocal ft=ruby
+autocmd BufNewFile,BufRead *.erb setlocal ft=eruby
+
+" Cython code
+" autocmd BufNewFile,BufRead *.pyx setlocal ft=python
+
+" Code folding
+set foldmethod=indent
+set nofoldenable
 
 " Autoindent python
 autocmd BufRead,BufNewFile *.py set ai
+autocmd BufRead,BufNewFile *.pyx set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
+autocmd BufRead *.pyx set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
@@ -121,8 +158,16 @@ autocmd FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html set ai sw=2 
 " Go uses tabs, not spaces
 autocmd FileType go setlocal noexpandtab
 
+" Use ag not ack for searching
+if executable('ag')
+    command Ag Ack
+    let g:ackprg = 'ag --nogroup --nocolor --column'
+endif
+
 " PLUGIN SETTINGS
-let g:khuno_max_line_length=110
+let g:khuno_ignore='E731,E402'
+let g:khuno_flake_cmd_options='--max-complexity 10'
+let g:khuno_max_line_length=120
 let g:coveragepy_rcfile='~/.coveragerc'
 let g:gist_clip_command='xclip -selection clipboard'
 let g:gist_detect_filetype=1

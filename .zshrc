@@ -6,10 +6,8 @@ alias pbcopy='xclip -selection c'
 
 # Load plugins -> extract these
 plugins=(
-    celery
     copydir
     copyfile
-    django
     docker
     encode64
     fabric
@@ -19,32 +17,28 @@ plugins=(
     github
     gnu-utils
     go
-    heroku
-    jira
     jump
     lol
-    med
-    mercurial
+    pass
     pip
-    postgres
     python
     tmux
     urltools
     vagrant
     virtualenv
-    web-search
 )
 # MAYBE: vi-mode
 
 source $ZSH/oh-my-zsh.sh
 
-export JAVA_HOME=/usr/local/java/jdk1.7.0_40
+#export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+export JAVA_HOME=/usr/lib/jvm/java-8-oracle
 
 # Set custom path
 # Apparently we have to put java first
 export GOROOT=/opt/golang
 export GOPATH=/opt/devel/golang
-PATH=$JAVA_HOME/bin:$PATH:/sbin:$HOME/bin:/opt/android/tools:/opt/android/platform-tools:/usr/local/sbin:/opt/neo4j/bin
+PATH=$JAVA_HOME/bin:$PATH:/sbin:$HOME/bin:/opt/android-sdk-linux/tools:/opt/android-sdk-linux/platform-tools:/usr/local/sbin:/opt/neo4j/bin
 
 # Go Things
 PATH=$PATH:$GOROOT/bin:$GOPATH/bin
@@ -111,6 +105,7 @@ bindkey '^R' history-incremental-search-backward
 
 unsetopt correctall
 
+# ADDITIONAL MIRRORS
 export EDITOR="`which vim`"
 
 
@@ -217,7 +212,7 @@ VI_MODE=$INSERT_MODE
 # zle -N zle-keymap-select
 # bindkey -v
 
-PROMPT='${FROM_VIM}%{$fg[magenta]%}%n@%M%{$reset_color%} $(_venv_name)$(_dirpath)${vcs_info_msg_0_} %{$fg[cyan]%}>>>%{$reset_color%} '
+PROMPT='${FROM_VIM}%{$fg[yellow]%}%T%{$reset_color%} %{$fg[magenta]%}%n@%M%{$reset_color%} $(_venv_name)$(_dirpath)${vcs_info_msg_0_} %{$fg[cyan]%}>>>%{$reset_color%} '
 
 
 
@@ -290,3 +285,23 @@ fi
 trap _venv_deactivate EXIT
 
 export PATH="$PATH:$HOME/.rvm/bin" # Add RVM to PATH for scripting
+
+vsed() {
+    search=$1
+    replace=$2
+    shift
+    shift
+    vim -c "bufdo! set eventignore-=Syntax| %s/$search/$replace/gce" $*
+}
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f /opt/google-cloud-sdk/path.zsh.inc ]; then
+  source '/opt/google-cloud-sdk/path.zsh.inc'
+fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f /opt/google-cloud-sdk/completion.zsh.inc ]; then
+  source '/opt/google-cloud-sdk/completion.zsh.inc'
+fi
+
+export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/$(pgrep -U $(whoami) xfce4-session)/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
