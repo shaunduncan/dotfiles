@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+import subprocess
+import sys
+import alsaaudio
+
+
+def up(mixer, **kwargs):
+    curvol = mixer.getvolume()[0]
+    nextvol = min((curvol + 5), 100)
+    mixer.setvolume(nextvol)
+
+
+def down(mixer, **kwargs):
+    curvol = mixer.getvolume()[0]
+    nextvol = max((curvol - 5), 0)
+    mixer.setvolume(nextvol)
+
+
+def toggle():
+    out = subprocess.check_output("pactl list | egrep '^Card' | awk '{print $NF}' | sed 's/#//g'",
+                                  shell=True)
+
+    cards = [s.strip() for s in out.strip().split('\n')]
+
+    for card in cards:
+        subprocess.check_call(['pactl', 'set-sink-mute', card, 'toggle'],
+                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+
+if __name__ == '__main__':
+    try:
+        opt = sys.argv[1].lower()
+    except (AttributeError, IndexError):
+        sys.exit('You must give argument up/down/toggle')
+
+    fn = None
+
+    if opt == 'up':
+        fn = up
+    elif opt == 'down':
+        fn = down
+    elif opt == 'toggle':
+        sys.exit(toggle())
+
+    if fn is None:
+        sys.exit('Unknown argument %s' % opt)
+
+    for i, _ in enumerate(alsaaudio.mixers()):
+        print '{0}: {1}'.format(opt, i)
+        try:
+            mixer = alsaaudio.Mixer(cardindex=i)
+        except Exception as e:
+            print 'Oops: {0}'.format(e)
+        else:
+            try:
+                fn(mixer, index=i)
+            except Exception as e:
+                print 'Failed to {0}: {1}'.format(opt, e)
