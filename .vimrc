@@ -1,7 +1,24 @@
 set nocompatible
 
 " All the plugins
-silent! call pathogen#infect()
+call plug#begin()
+
+Plug 'alfredodeza/jacinto.vim'
+Plug 'alfredodeza/khuno.vim'
+Plug 'alfredodeza/pytest.vim'
+Plug 'bling/vim-airline'
+Plug 'chriskempson/base16-vim'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+Plug 'godlygeek/tabular'
+Plug 'hashivim/vim-terraform'
+Plug 'inside/vim-search-pulse'
+Plug 'mbbill/undotree'
+Plug 'rust-lang/rust.vim'
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-vinegar'
+Plug 'vim-python/python-syntax'
+
+call plug#end()
 
 " I hate backups and swaps
 set nowritebackup
@@ -13,14 +30,16 @@ set ffs=unix
 set lazyredraw
 set ttyfast
 
-" Clipboard
-set clipboard=unnamedplus
+" Clipboard, only use unnamed+ on linux
+if system('uname -s') == 'Linux'
+    set clipboard=unnamedplus
+endif
 
-" Leader
+" Leader key
 let mapleader = "\<Space>"
 
-" Write quickness
-nnoremap <Leader>w :w<CR>
+" write shortcut
+nn <Leader>w :w<CR>
 
 " System clipboard
 vmap <Leader>y "+y
@@ -33,8 +52,21 @@ vmap <Leader>P "+P
 " Visual line
 nmap <Leader><Leader> V
 
+" Easier navigation
+nmap <Leader>h <C-W>h
+nmap <Leader>j <C-W>j
+nmap <Leader>k <C-W>k
+nmap <Leader>l <C-W>l
+
+" tabs
+nmap <Leader>tn :tabnew<CR>
+nmap <Leader>tl :tabnext<CR>
+nmap <Leader>th :tabprev<CR>
+nmap <leader>tq :tabclose<CR>
+
 inoremap # X<BS>#
 
+" disable macro recording
 map q <Nop>
 
 set nowrap  " Don't wrap
@@ -50,12 +82,10 @@ filetype on
 filetype plugin on
 filetype indent on
 
+" preferred color scheme
 set background=dark
-colorscheme Tomorrow-Night-Bright
 
-" X(name, fg, bg, attr, lcfg, lcbg
-" hi <name> ctermfg=<lcfg> ctermbg=<lcbg>
-
+" yell if there is trailing whitespace
 hi ExtraWhitespace ctermbg=red guibg=red
 match ExtraWhitespace /\s\+$/
 
@@ -64,7 +94,6 @@ set backspace=indent,eol,start
 set visualbell
 set history=10000
 
-" I can haz gui?
 if has("gui_running")
     set guioptions-=T  " Nix the toolbar
     highlight SpellBad term=underline gui=undercurl guisp=Red
@@ -74,6 +103,7 @@ else
     set mouse=c  " It's the terminal pal
 endif
 
+" add persistent undo
 if has('persistent_undo')
     set undodir=$HOME/.vim/undo
     set undolevels=10000
@@ -84,32 +114,6 @@ endif
 set laststatus=2
 set encoding=utf-8
 set showcmd
-
-"set statusline=
-"set statusline+=%*
-"set statusline+=%-4{VenvName()}              " Where the hell am I working?
-"set statusline+=%*
-"set statusline+=%-4{bondsman#Bail()}         " Show the git state
-"set statusline+=%*
-"set statusline+=%{Collapse(expand('%:p'))}   " Trancated path
-"set statusline+=%*%m%r%h%w
-"set statusline+=%=                           " right align
-"set statusline+=\ \ \ \ %y                   " the type of file
-"set statusline+=[
-"set statusline+=%3l/                         " Line number with padding
-"set statusline+=%L                           " Total lines in the file
-"set statusline+=:%2c                         " column number
-"set statusline+=]
-"
-"" " Highlight flake errors
-"set statusline+=%#ErrorMsg#
-"set statusline+=%{khuno#Status('X')}%*
-"set statusline+=%*
-
-let g:airline_powerline_fonts=1
-let g:airline_detect_modified=1
-let g:airline_section_z = '%3l/%L:%2c'
-let g:airline_section_warning = "%{khuno#Status('X')}"
 
 " Do searching how i prefer
 set ignorecase
@@ -150,6 +154,7 @@ autocmd BufRead,BufNewFile *.pyx set ai
 autocmd BufRead *.py set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 autocmd BufRead *.pyx set smartindent cinwords=if,elif,else,for,while,with,try,except,finally,def,class
 
+" by default, expand tabs to 4 spaces
 set tabstop=4 expandtab shiftwidth=4 softtabstop=4
 
 " Ruby, etc -> indent 2 spaces
@@ -158,53 +163,28 @@ autocmd FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html set ai sw=2 
 " Go uses tabs, not spaces
 autocmd FileType go setlocal noexpandtab
 
-" Use ag not ack for searching
-if executable('ag')
-    command Ag Ack
-    let g:ackprg = 'ag --nogroup --nocolor --column'
-endif
-
+" ---------------
 " PLUGIN SETTINGS
+" ---------------
+
+" airline
+let g:airline_powerline_fonts=1
+let g:airline_detect_modified=1
+let g:airline_section_z = '%3l/%L:%2c'
+let g:airline_section_warning = "%{khuno#Status('X')}"
+
+" khuno
 let g:khuno_ignore='E731,E402'
 let g:khuno_flake_cmd_options='--max-complexity 10'
 let g:khuno_max_line_length=120
-let g:coveragepy_rcfile='~/.coveragerc'
-let g:gist_clip_command='xclip -selection clipboard'
-let g:gist_detect_filetype=1
-let g:gist_open_browser_after_post=1
-let g:gist_browser_command='chromium %URL% &'
-let g:gist_show_privates=1
-let g:gist_post_private=1
 
-" FUNCTIONS
-function! Collapse(string)
-    let threshold = 30
-    let total_length = len(a:string)
-    if total_length > threshold
-        let difference = total_length - threshold
-        return ' ...' . strpart(a:string, difference)
-    else
-        return a:string
-    endif
-endfunction
+" netrw
+let g:netrw_banner = 1
+let g:netrw_liststyle = 3
+let g:netrw_browse_split = 4
+let g:netrw_altv = 1
+let g:netrw_winsize = 25
 
-function! VenvName() abort
-    let full_path = expand("%:p")
-    if strpart(full_path,0,12) == '/Volumes/HDD'
-        let full_path = strpart(full_path,12)
-    endif
-
-    let path_elems = split(full_path,'/')
-    let venv_name = ''
-    if len(path_elems) > 2
-        if path_elems[0] == 'opt' && (path_elems[1] == 'devel' || path_elems[1] == 'forks')
-            let venv_name = path_elems[2]
-            if strpart(venv_name,0,4) == 'cms_'
-                let venv_name = strpart(venv_name,4)
-            endif
-            return '['.toupper(venv_name).']'
-        endif
-        return ''
-    endif
-    return ''
-endfunction
+" terraform
+let g:terraform_align=1
+let g:terraform_fmt_on_save=1
