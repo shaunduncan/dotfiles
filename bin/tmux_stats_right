@@ -1,65 +1,78 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf8 -*-
+import datetime
+import json
+import locale
 import os
+import re
 import subprocess
+import sys
+import time
 
 from operator import itemgetter, methodcaller
 
-import alsaaudio
-import dbus
+is_mac = sys.platform == 'darwin'
+
+if not is_mac:
+    import alsaaudio
+    import dbus
+
+import pytz
 
 
-def get_volume():
-    muted = False
+def osa(s):
+    return subprocess.check_output(f"osascript -e '{s}'", shell=True).strip().decode()
 
-    try:
-        mixer = alsaaudio.Mixer(cardindex=1)
-    except:
-        return ''
-    else:
-        output = u'{}%'.format(mixer.getvolume()[0])
 
-        # Check if muted
-        mute_check = subprocess.check_output('pactl list sinks | grep Mute', shell=True)
-        if 'yes' in mute_check:
-            output = u'#[fg=red,bg=black]🔇 {}#[fg=white,bg=black]'.format(output)
-        else:
-            output = u'🔊 {}'.format(output)
-
-        return output.encode('utf8')
+def sysctl(s):
+    return subprocess.check_output(f"sysctl {s}", shell=True).strip().decode()
 
 
 def get_current_track():
-    # Hack: tmux does weird shit with this, so figure out what the actual session bus is
-    addr = subprocess.check_output("/home/sduncan/bin/dbus_address", shell=True).strip()
-    os.environ['DBUS_SESSION_BUS_ADDRESS'] = addr
+    # don't do this on mac
+    if is_mac:
+        try:
+            artist = osa('tell application "Spotify" to artist of current track')
+        except subprocess.CalledProcessError:
+            # spotify isn't running
+            return ''
+        else:
+            title = osa('tell application "Spotify" to name of current track')
+            playback_status = osa('tell application "Spotify" to player state')
+            info = 'y tho'
+    else:
+        # Hack: tmux does weird shit with this, so figure out what the actual session bus is
+        addr = subprocess.check_output("/home/sduncan/bin/dbus_address", shell=True).strip()
+        os.environ['DBUS_SESSION_BUS_ADDRESS'] = addr.decode('utf8')
 
-    bus = dbus.SessionBus()
-    player = bus.get_object('org.mpris.MediaPlayer2.spotify', '/org/mpris/MediaPlayer2')
-    iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
-    info = iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
+        bus = dbus.SessionBus()
+        player = bus.get_object('org.mpris.MediaPlayer2.spotify', '/org/mpris/MediaPlayer2')
+        iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
+        info = iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
 
-    playback_status = iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
+        if info:
+            artist = info['xesam:artist'][0]
+            title = info['xesam:title']
+
+        playback_status = iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
 
     if 'playing' in playback_status.lower():
-        prefix = u'♫ '
+        prefix = u'♫  '
         color = 'white'
     else:
-        prefix = u'⏸ '
+        prefix = u'⏸  '
         color = 'yellow'
 
     if not info:
         return ''
     else:
         maxlen = 50
-        artist = info['xesam:artist'][0]
-        title = info['xesam:title']
 
-        info = u'{prefix}{artist} - {title}'.format(
+        info = '{prefix}{artist} - {title}'.format(
             prefix=prefix,
             artist=artist,
             title=title,
-        ).encode('utf8')
+        )
 
         if len(info) > maxlen:
             info = info[:maxlen-3] + '...'
@@ -72,8 +85,8 @@ def get_current_state(battery):
     pct = 100.0
 
     output = subprocess.check_output(
-        'upower -i {} | grep -E "state|percentage"'.format(battery), shell=True
-    ).strip().split('\n')
+        'upower -i {} | grep -E "state|percentage"'.format(battery.decode('utf8')), shell=True
+    ).strip().decode('utf8').split('\n')
 
     for line in map(methodcaller('strip'), output):
         name, _, data = line.rpartition(' ')
@@ -88,13 +101,13 @@ def get_current_state(battery):
 
 def as_hearts(percent, factor=10):
     # FIXME: Show 1 full heart for every 10% it has
-    heart = u'♥'.encode('utf8')
+    heart = '♥'
 
     num_full = int(round(percent / factor))
     num_empty = (100 / factor) - num_full
 
-    full_hearts = heart * num_full
-    empty_hearts = heart * num_empty
+    full_hearts = heart * int(num_full)
+    empty_hearts = heart * int(num_empty)
 
     return '#[fg=red,bg=black]{}#[fg=white,bg=black]{}'.format(full_hearts, empty_hearts)
 
@@ -105,23 +118,35 @@ def get_memory():
     buffers = None
     cached = None
 
-    with open('/proc/meminfo', 'r') as f:
-        for line in f:
-            if line.startswith('MemTotal:'):
-                total = float(line.strip().split(' ')[-2])
-            elif line.startswith('MemFree:'):
-                free = float(line.strip().split(' ')[-2])
-            elif line.startswith('Buffers:'):
-                buffers = float(line.strip().split(' ')[-2])
-            elif line.startswith('Cached:'):
-                cached = float(line.strip().split(' ')[-2])
+    if is_mac:
+        total = float(subprocess.check_output(['sysctl', 'hw.memsize']).strip().decode().split(' ')[-1])
 
-    # Convert to GB
-    total /= 1024.0 ** 2
-    free /= 1024.0 ** 2
-    buffers /= 1024.0 ** 2
-    cached /= 1024.0 ** 2
-    used = total - free - buffers - cached
+        used = 0
+        procmems = subprocess.check_output(['ps', '-caxm', '-orss']).strip().decode().split('\n')[1:]
+        for mem in procmems:
+            used += float(mem)
+
+        total /= 1024.0 ** 3
+        used /= 1024.0 ** 2  # these report in KB
+    else:
+        with open('/proc/meminfo', 'r') as f:
+            for line in f:
+                if line.startswith('MemTotal:'):
+                    total = float(line.strip().split(' ')[-2])
+                elif line.startswith('MemFree:'):
+                    free = float(line.strip().split(' ')[-2])
+                elif line.startswith('Buffers:'):
+                    buffers = float(line.strip().split(' ')[-2])
+                elif line.startswith('Cached:'):
+                    cached = float(line.strip().split(' ')[-2])
+
+        # Convert to GB
+        total /= 1024.0 ** 2
+        free /= 1024.0 ** 2
+        buffers /= 1024.0 ** 2
+        cached /= 1024.0 ** 2
+        used = total - free - buffers - cached
+
     pct = (used / total) * 100.0
 
     if pct < 85:
@@ -143,13 +168,17 @@ def get_memory():
 
 def get_battery(factor=10):
     status = []
-    output = subprocess.check_output('upower -e | grep BAT', shell=True).strip().split('\n')
-    batteries = map(methodcaller('strip'), output)
 
-    for battery in batteries:
-        _, _, name = battery.rpartition('_')
-        name = name.replace('BAT', 'B')
-        state, pct = get_current_state(battery)
+    if is_mac:
+        lines = subprocess.check_output(['pmset', '-g', 'batt']).strip().decode().split('\n')
+        name = 'B0'
+
+        if 'AC Power' in lines[0]:
+            state = 'charging'
+        else:
+            state = 'discharging'
+
+        pct = float(re.findall(r'(\d+)%;', lines[1])[0])
 
         if pct > 25:
             color = '#[fg=white,bg=black]'
@@ -162,6 +191,35 @@ def get_battery(factor=10):
             color = '#[fg=green,bg=black]+'
 
         status.append((name, as_hearts(pct, factor=factor), color))
+    else:
+        try:
+            output = subprocess.check_output(b'upower -e | grep BAT', shell=True).strip().split(b'\n')
+        except Exception:
+            output = [b'B0']
+
+        batteries = [s.strip() for s in output]
+
+        for battery in batteries:
+            _, _, name = battery.decode('utf8').rpartition('_')
+            name = name.replace('BAT', 'B')
+
+            try:
+                state, pct = get_current_state(battery)
+            except Exception:
+                state = ''
+                pct = 100
+
+            if pct > 25:
+                color = '#[fg=white,bg=black]'
+            elif pct > 15:
+                color = '#[fg=yellow,bg=black]'
+            else:
+                color = '#[fg=red,bg=black]'
+
+            if state == 'charging':
+                color = '#[fg=green,bg=black]+'
+
+            status.append((name, as_hearts(pct, factor=factor), color))
 
     return ' '.join([
         '{}{}:{}#[fg=white,bg=black]'.format(c, b, h) for b, h, c in sorted(status, key=itemgetter(0))
@@ -169,23 +227,26 @@ def get_battery(factor=10):
 
 
 def get_loadavg():
-    with open('/proc/loadavg', 'r') as f:
-        loadavg = float(f.readline().strip().split(' ')[0])
+    if is_mac:
+        loadavg = float(sysctl('vm.loadavg').split(' ')[-4])
+    else:
+        with open('/proc/loadavg', 'r') as f:
+            loadavg = float(f.readline().strip().split(' ')[0])
 
-        if loadavg < 2.5:
-            color = '#[fg=white,bg=black]'
-        elif loadavg < 5:
-            color = '#[fg=yellow,bg=black]'
-        else:
-            color = '#[fg=red,bg=black]'
+    if loadavg < 2.5:
+        color = '#[fg=white,bg=black]'
+    elif loadavg < 5:
+        color = '#[fg=yellow,bg=black]'
+    else:
+        color = '#[fg=red,bg=black]'
 
-        kwargs = {
-            'color': color,
-            'reset': '#[fg=white,bg=black]',
-            'load': '{:.2f}'.format(loadavg),
-        }
+    kwargs = {
+        'color': color,
+        'reset': '#[fg=white,bg=black]',
+        'load': '{:.2f}'.format(loadavg),
+    }
 
-        return '{color}L:{load}{reset}'.format(**kwargs)
+    return '{color}L:{load}{reset}'.format(**kwargs)
 
 
 def main():
@@ -197,14 +258,23 @@ def main():
         lines.append(get_current_track())
     except:
         # Probably no track...
-        pass
+        raise
 
     lines.append(get_loadavg())
     lines.append(get_memory())
     lines.append(get_battery(factor=factor))
-    lines.append(get_volume())
 
-    print ' | '.join(filter(bool, lines))
+    data = []
+    for line in lines:
+        if not line:
+            continue
+
+        if hasattr(line, 'decode'):
+            line = line.decode()
+
+        data.append(line)
+
+    print(' | '.join(data))
 
 
 if __name__ == '__main__':

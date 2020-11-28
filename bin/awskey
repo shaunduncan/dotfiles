@@ -1,0 +1,9 @@
+#!/bin/bash
+# generate MFA token for AWS and place on the clipboard
+if [[ "$(uname -s)" == "Linux" ]]; then
+    ykman oath code aws | awk '{print $NF}' | xclip -sel c
+    xclip -sel c -o
+elif [[ "$(uname -s)" == "Darwin" ]]; then
+    ykman oath code aws | awk '{print $NF}' | pbcopy
+    pbpaste
+fi

@@ -1,0 +1,5 @@
+#!/bin/bash
+# useful script for some times when the touchpad would just stop working
+sudo modprobe -r psmouse
+sudo modprobe psmouse
+synclient TouchpadOff=0
