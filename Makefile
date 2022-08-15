@@ -5,5 +5,4 @@
 all: install
 
 install:
-	@echo "hold on to your butts..."
-	./install.sh
+	@echo "this doesn't work anymore, it needs to setup everything"
