@@ -1,0 +1,14 @@
+priority 10
+
+snippet "^ifmain" "if main boilerplate" brA
+if __name__ == '__main__':
+	${1:pass}
+endsnippet
+
+post_expand "snip.buffer[snip.snippet_end[0]+1:snip.snippet_end[0]+1] = ['']"
+snippet d "Description" b
+def $1():
+    $2
+endsnippet
+
+# vi:ts=4:sw=4:sts=4:et:

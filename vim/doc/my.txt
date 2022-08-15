@@ -1,0 +1,77 @@
+*my* an opinionated vim configuration
+
+				eeeeeee e    e 
+				8  8  8 8    8 
+				8e 8  8 8eeee8 
+			        88 8  8   88   
+				88 8  8   88   
+               
+
+	   my: a custom tailored collection of somewhat opinionated
+	utilities to setup and manage a vim environmnet configuration
+
+		     Shaun Duncan <shaun@shaunduncan.net>
+				 MIT License
+
+
+=============================================================================
+CONTENTS						    *my-contents*
+
+  1. Intro .................................................. |my-intro|
+  2. Credits ................................................ |my-credits|
+
+=============================================================================
+INTRO
+
+This plugin, called 'my',  is the result of an undertaking to refactor,
+organize, and improve upon my personal vim configuration and environment
+settings. I spent many, many hours curating useful plugins and utilities that
+suited my own personal development needs.
+
+'my' may not be useful for everyone. It is relatively opinionated.
+
+=============================================================================
+COLORSCHEMES
+
+Colorschemes follow the Base16 design pattern: a 16-color palette for both
+terminal coloring and syntax highlighting. Color palettes coded and referenced
+to by a hexidecimal digit 0-F. The following is a quick reference to how these
+map to highlight groups:
+
+*g:my_theme_palette*
+
+0: `Normal` background
+1: Todo, CursorColumn, ColorColumn background
+2: Visual background
+3: LineNr foreground
+4: StatusLine, CursorLineNr foreground
+5: Normal foreground
+6: Pmenu foreground
+7: ??? (Base16 sets this for StartifyFile foreground)
+8: ErrorMsg foreground
+9: IncSearch background
+   CursorLineNr, Constant, Number, Boolean foreground
+A: Search background
+   Type foreground
+B: MoreMsg, ModeMsg, DiffAdd, String foreground
+C: SpellLocal, Folded, Special foreground
+D: Function, Directory, Title foreground
+E: SpellRare, Conditional, Keyword foreground
+F: ??? (Base16 sets this for rubyInterpolationDelimiter foreground)
+
+=============================================================================
+NOTES
+
+See `:help usr_44.txt` for information on defining custom syntax highlights
+
+=============================================================================
+CREDITS
+
+Inspiration for this plugin comes from several locations:
+
+- Base16 color framework: https://github.com/base16-project/base16-vim
+- Nova colorscheme: https://github.com/zanglg/nova.vim
+- Dalton colorscheme: https://github.com/lissatransborda/dalton-vim
+
+=============================================================================
+vi:tw=78:fo=tcq2mM:ts=8:ft=help:norl:noet

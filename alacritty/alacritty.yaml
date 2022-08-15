@@ -1,0 +1,148 @@
+# terminal env vars
+env:
+  TERM: xterm-256color
+
+window:
+  padding:
+    x: 1
+    y: 1
+  dynamic_padding: false
+
+  # full or none (with or without border/title bar)
+  decorations: none
+
+  # do not make the window transparent
+  opacity: 1.0
+
+  # allow applications to change the window title with ansi sequences
+  dynamic_title: true
+
+scrolling:
+  history: 10000
+
+# Font configuration
+font:
+  size: 12.0
+  normal:
+    family: 'Triplicate B Code'
+
+  # all fonts inherit from normal, but the bold for triplicate is a little too heavy
+  # so override those to be either normal or italic
+  bold:
+    style: Regular
+  bold_italic:
+    style: Italic
+
+  # the external display used most of the time is non-retina, don't use thin strokes
+  use_thin_strokes: false
+
+  # the triplicate box drawing characters don't look right for double line borders
+  # so just use the builtin font
+  builtin_box_drawing: true
+
+draw_bold_text_with_bright_colors: true
+
+# color schemes
+colorschemes:
+  dalton: &colorscheme-dalton
+    primary:
+      background: '#000000'
+      foreground: '#ffffff'
+
+    # invert colors for selection
+    selection:
+      text: CellBackground
+      background: CellForeground
+
+    # palette
+    normal: &colorscheme-dalton-normal
+      black:   '#000000'
+      red:     '#ff001d'
+      green:   '#30db22'
+      yellow:  '#ff8f00'
+      blue:    '#2b7df0'
+      magenta: '#ab47bc'
+      cyan:    '#32bcd9'
+      white:   '#ffffff'
+
+    # use consistent colors
+    bright:
+      *colorscheme-dalton-normal
+    dim:
+      *colorscheme-dalton-normal
+
+colors:
+  *colorscheme-dalton
+
+# disable visual bell
+bell:
+  duration: 0
+
+selection:
+  # word boundary separators
+  semantic_escape_chars: ",│║┃`|:\"' ()[]{}<>\t="
+  save_to_clipboard: false
+
+cursor:
+  style:
+    shape: Block
+    blinking: Always
+  blink_interval: 500
+  unfocused_hollow: true
+  thickness: 0.5
+
+live_config_reload: true
+
+# default shell
+shell:
+  program: /bin/zsh
+  args:
+    - --login
+
+mouse:
+  hide_when_typing: true
+
+# regex hints
+hints:
+  # enable command click for urls
+  enabled:
+   - regex: "(mailto:|https:|http:|file:|git:|ssh:|ftp:)\
+             [^\u0000-\u001F\u007F-\u009F<>\"\\s{-}\\^⟨⟩`]+"
+     command: open
+     post_processing: true
+     mouse:
+       enabled: true
+       mods: Command
+     binding:
+       key: U
+       mods: Control|Shift
+
+mouse_bindings:
+  - { mouse: Middle, action: PasteSelection }
+
+# key bindings
+key_bindings:
+  # from tmux.conf: 0x01 is ctrl-a, 0x1b is modifier (M-xxx)
+  # have this in place so the keyboard shortcuts for pane/window movement work
+  - { key: T, mods: Alt|Shift, chars: "\x01\x1bT" }
+  - { key: H, mods: Alt|Shift, chars: "\x01\x1bH" }
+  - { key: L, mods: Alt|Shift, chars: "\x01\x1bL" }
+  - { key: N, mods: Alt|Shift, chars: "\x01\x1bN" }
+
+  # standard quit keys
+  - { key: Q, mods: Command, action: Quit }
+  - { key: W, mods: Command, action: Quit }
+
+  # let ctrl-space/enter through so it can be used for vim key mappings
+  - { key: Space, mods: Control, action: ReceiveChar }
+  - { key: Return, mods: Control, action: ReceiveChar }
+
+  # allow creating a new window easily
+  - { key: N, mods: Command, action: CreateNewWindow }
+  - { key: F, mods: Command|Control, action: ToggleFullscreen } # or ToggleSimpleFullscreen
+
+  # font sizing
+  - { key: Key0, mods: Command, action: ResetFontSize }
+  - { key: Equals, mods: Command, action: IncreaseFontSize }
+  - { key: Plus, mods: Command, action: IncreaseFontSize }
+  - { key: Minus, mods: Command, action: DecreaseFontSize }

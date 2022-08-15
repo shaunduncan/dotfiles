@@ -1,0 +1,8 @@
+# snippets for all filetypes
+priority 10
+
+# add a note statement with my user name. if the current file has a commentstring defined then it
+# will be used as a prefix for the note entered
+snippet "(todo|fixme|xxx|note)" "code notes" brtA
+`!v printf(len(&cms) ? &cms : '%s', '') ``!p snip.rv = match.group(1).upper()`: (`whoami`) $1
+endsnippet

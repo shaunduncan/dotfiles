@@ -1,0 +1,80 @@
+# custom golang snippets
+priority 10
+
+# TODO
+# - josh's debug+json for protobuf
+# - iferr to allow visual selection to wrap with if STMT; COND { }
+
+# fill in boilerplate for checking and returning an error
+snippet iferr "if err != nil" btA
+if err != nil {
+	return ${1:fmt.Errorf("$2: %w", err)}
+}
+endsnippet
+
+# fill in boilerplate for a test function
+snippet "^test" "test func" brtA
+func Test${1:XXX}(t *testing.T) {
+	t.Paralell()
+
+	scenarios := []struct{
+		name string
+	}{
+		{
+			name: "${2:`!p snip.rv = t[1].lower()`} test",
+		},
+	}
+
+	for _, scenario := range scenarios {
+		t.Run(scenario.name, func(t *testing.T) {
+			$0
+		})
+	}
+}
+endsnippet
+
+# fill in boilerplate for a benchmark function
+snippet "^bench" "benchmark func" brtA
+func Benchmark${1:XXX}(b *testing.B) {
+	b.ReportAllocs()
+
+	for i := 0; i < b.N; i++ {
+		$0
+	}
+}
+endsnippet
+
+# debug print statement for a single var
+snippet "(\w+)\.debug" "debug print var" r
+fmt.Printf(">>>>> FIXME `whoami`: %s: %+v\n", `!p var = match.group(1); snip.rv = f'"{var}", {var}'`)
+endsnippet
+
+# function block
+snippet func "plain function" bt
+func ${1:name}(${2:ctx context.Context})${3/(.+)/ /}${3:error} {
+	${0:${VISUAL}}
+}
+endsnippet
+
+# struct function block
+snippet "^meth" "struct function" brt
+func (${1/\*?([A-Za-z]).*/\l$1/} *${1:Receiver}) ${2:name}(${3:ctx context.Context})${4/(.+)/ /}${4:error} {
+	${0:${VISUAL}}
+}
+endsnippet
+
+# var assignment check to ensure that an interface is implemented
+snippet impl? "type implements interface" tA
+_ ${1:Interface} = (*${2:Type})(nil)
+endsnippet
+
+# fill in the ctx parameter for functions
+snippet ctx "fill in ctx func param" it
+ctx context.Context
+endsnippet
+
+snippet "([a-zA-Z0-9_\-\.\(\)]+)\.\." "debug" rt
+fmt.Printf(">>> SMD: %s: %+v\n", "`!p snip.rv = match.group(1)`$1", `!p snip.rv = match.group(1)`) // FIXME: (sduncan) testing
+endsnippet
+
+# vi:ts=4:sw=4:sts=4:noet:

@@ -1,0 +1,915 @@
+set nocompatible
+
+" vim-plug auto-install {{{
+let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+if empty(glob(data_dir . '/autoload/plug.vim'))
+  silent exe '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+  autocmd VimEnter * PlugInstall --sync | source $MYVIMRC
+endif
+
+" by default, don't run tagbar unless it's for specific filetypes
+let b:tagbar_ignore=1
+aug tagbar-enable | au!
+  au BufNewFile,BufReadPost *.go let b:tagbar_ignore=0
+aug END
+
+" FIXME
+" set switchbuf=useopen
+
+" }}}
+
+" Plugins {{{
+call plug#begin('~/.vim/plugged')
+
+" my own stuff
+Plug 'shaunduncan/dotfiles', { 'dir': '~/.config/dotfiles/vim', 'frozen': v:true }
+
+" TODO
+" filetype/language support {{{
+Plug 'fatih/vim-go',             { 'do': ':GoUpdateBinaries' }
+Plug 'cespare/vim-toml',         { 'for': 'toml' }
+Plug 'hashivim/vim-terraform',   { 'for': 'terraform' }
+Plug 'uarun/vim-protobuf',       { 'for': 'proto' }
+Plug 'vim-python/python-syntax', { 'for': 'python' }
+Plug 'preservim/vim-markdown',   { 'for': 'markdown' }
+Plug 'gisphm/vim-gitignore',     { 'for': 'gitignore' }
+" }}}
+
+" dev tools {{{
+Plug 'AndrewRadev/quickpeek.vim'
+Plug 'Konfekt/FastFold'
+Plug 'SirVer/ultisnips'
+Plug 'tpope/vim-commentary'
+Plug 'tpope/vim-surround'
+
+" git tools
+Plug 'tpope/vim-fugitive'
+Plug 'shumphrey/fugitive-gitlab.vim'
+
+" some personalizations and custom mods
+Plug 'shaunduncan/ale'     " dense-analysis/ale
+Plug 'shaunduncan/tagbar'  " preservim/tagbar
+" }}}
+
+" vim utilities {{{
+Plug 'gcmt/taboo.vim'
+Plug 'godlygeek/tabular'
+Plug 'ivyl/vim-bling'
+Plug 'jeetsukumaran/vim-buffergator'
+Plug 'kshenoy/vim-signature'
+Plug 'liuchengxu/vim-which-key'
+Plug 'mbbill/undotree'
+Plug 'troydm/zoomwintab.vim'
+Plug 'zhimsel/vim-stay'
+" }}}
+
+" ui {{{
+Plug 'vim-airline/vim-airline'
+" }}}
+
+" debug tools {{{
+" Plug 'dstein64/vim-startuptime'
+" }}}
+
+call plug#end()
+" }}}
+
+" Vars {{{
+" custom theme options
+let g:my_theme=get(environ(), 'MY_THEME', 'my_dalton')
+let g:my_theme_fold='cyan'
+let g:my_theme_sync_fold_color=1
+let g:my_theme_minimal_cursorline=1
+" }}}
+
+" Settings {{{
+" core settings
+set encoding=utf-8
+set autoread
+set nofsync
+set fileformats=unix
+set backspace=indent,eol,start
+set history=1000  " remember this many ':' vim commands
+
+" disable spellcheck
+set nospell
+
+" turn off visual bell otherwise it'll make tmux activity noisy
+set noerrorbells
+set novisualbell
+set belloff=all
+set t_vb=
+
+" syntax highlighting for things that might have large data
+set maxmempattern=4194304
+
+" enable autoindent, but disable smartindent
+set autoindent
+set nosmartindent
+
+" tab vs spaces 2: the whitespacening
+" by default, assume 4 space tabs and automatically expand tabs to spaces
+set tabstop=4 shiftwidth=4 softtabstop=4
+set expandtab
+
+" syntax highlighting is always on
+syntax on
+
+" the conceal feature is a bit too much magic for my taste
+set concealcursor="" conceallevel=0
+
+" enable filetype specific behaviors
+filetype plugin indent on
+
+" visual settings
+set display=lastline
+set showmatch
+set nowrap
+set number relativenumber
+set scrolloff=5   " have some scroll context
+
+" what to show for cursor information
+set cursorline nocursorcolumn
+
+" prefer terminal-only modes
+set guioptions-=T
+set mouse=c
+
+" for line wraps if we turn off wrapping, prefix with something
+let &showbreak='❯ '
+
+" status Line: always show and include the command
+set laststatus=2
+set showcmd
+
+" tab completion for opening files and what not: <Tab>shows the list of matches, <Tab> a second
+" time to go through the options. skip commonly ignored files
+set wildmenu
+set wildmode=list:longest,full
+set wildignore=*.o,*~,*.pyc,*/.git/*,*/.hg/*,*/.svn/*,*/.DS_Store
+
+" ui speed: prevent blocking refreshes and assume the terminal connection is fast
+set lazyredraw
+set ttyfast
+
+" stop syntax highlights for long lines
+set synmaxcol=192
+" syntax sync minlines=64 maxlines=256
+" syntax sync ccomment goComment
+"
+" add minlines=100 to scan back at least these many lines for a comment start which might give
+" better context information
+"
+" add maxlines=500 to stop scanning this many lines back
+
+" search settings
+set ignorecase smartcase hlsearch incsearch
+
+" diff options: ignore whitespace and use the better histogram algorithm
+set diffopt+=vertical,iwhite,algorithm:histogram
+
+" empty space fill behavior
+" stl:       space - statusline
+" stlnc:     space - statusline in other windows
+" vert:      ┃     - vsplit separator
+" foldopen:  ◇
+" foldclose: ◆
+" foldsep:   │     - fold span
+" diff:      space - vimdiff removed filler
+" eob: empty lines at buffer end
+let &fillchars='stl: ,stlnc: ,vert:┃,foldopen:◇,foldclose:◆,foldsep:│,diff: ,eob:~'
+
+" allow looking for custom settings in the first 5 lines
+set modeline modelines=5
+
+" some plugins add things to the sign column (ALE) so the screen doesn't go back and forth
+set signcolumn=yes
+
+" persist these things when saving a view
+set viewoptions=folds,slash,unix
+
+" views can get messed up with cursor position when folds are open or closed so reset the cursor
+" position to the beginning of the file after loaded
+aug autoview | au!
+  au SessionLoadPost * 0
+aug END
+
+" set a maximum textwidth, but configure format options only wrap comments
+set textwidth=100
+set formatoptions=crqnj
+
+" don't allow hidden buffers so when we close a file, it actually closes
+set nohidden
+
+" turn off swaps but enable backup files
+set noswapfile
+set backup backupext=.bak
+
+" vim and neovim have different backup file formats, so use different locations
+if has('nvim')
+  set backupdir=$HOME/.vim/nvim-backup
+else
+  set backupdir=$HOME/.vim/backup
+endif
+
+" on mac, the default locations to skip for backups don't work because of symlinks
+" and don't cover enough bases. make sure it works as expected
+if has('mac')
+  let &backupskip=&backupskip.',/private/var/*,/tmp/*'
+endif
+
+" use the system clipboard for text yanks
+if has('linux')
+  set clipboard=unnamedplus
+else
+  set clipboard=unnamed
+endif
+
+" add settings to support persistent undo
+if has('persistent_undo')
+  " save undo history (:help clear-undo)
+  set undofile undolevels=500
+
+  " keep neovim separate from regular vim
+  if has('nvim')
+    set undodir=$HOME/.vim/nvim-undo
+  else
+    set undodir=$HOME/.vim/undo
+  endif
+
+  " don't create an undofile for skipped backup files (e.g. /tmp)
+  aug noundo-rules | au!
+    exe 'au BufNewFile,BufReadPost,BufWritePre ' . &backupskip . ' setlocal noundofile'
+	aug END
+endif
+" }}}
+
+" Keymap {{{
+" use spacebar as the leader key, default to a 500ms timeout to wait for keys
+let mapleader="\<Space>"
+set timeoutlen=400
+
+" find/replace word under cursor
+nn <Leader>R %s/<C-r><C-w>/
+
+" toggle colorcolumn to visualize text wraps
+nn <silent> <Leader><Bar><Bar> :exe 'set cc=' . (len(&cc) == 0 ? &textwidth : '')<CR>
+
+" convert hex under cursor to decimal
+" nn <Leader>0x %s/\([0-9a-fA-F]\{2\}\)/\=str2nr(submatch(1),16)/g
+
+" tmux ctrl-a makes the increment number option useless, so remap it
+no <C-k> <C-a>
+no <C-j> <C-x>
+
+nn <silent> <ESC><ESC> :lclose<CR>:cclose<CR>
+
+" location list
+nn <Leader>ll :lopen<CR>
+nn <Leader>lq :lclose<CR>
+nn <Leader>ln :lnext<CR>
+nn <Leader>lp :lprevious<CR>
+
+" quickfix
+nn <Leader>cc :copen<CR>
+nn <Leader>cq :cclose<CR>
+nn <Leader>cn :cnext<CR>
+nn <Leader>cp :cprevious<CR>
+
+" copy all
+nn <Leader>A :%y<CR>
+
+" working with tabs
+nn <Leader>T :tabs<CR>
+nn <Leader>tn :tabnew<CR>
+nn <Leader>tl :tabnext<CR>
+nn <Leader>th :tabprev<CR>
+nn <leader>tq :tabclose<CR>
+nn <Leader>tL :tabmove +1<CR>
+nn <Leader>tH :tabmove -1<CR>
+nn <Leader>to :tabonly<CR>
+
+" smartindent comments:
+" https://vim.fandom.com/wiki/Restoring_indent_after_typing_hash
+ino # X<BS>#
+
+" jq formtting, allow in both normal and visual block mode
+no <Leader>jq :%!jq '.'<CR>
+
+" disable macro recording
+no q <Nop>
+
+" visual block up/down movement
+vn J :m '>+1<CR>gv=gv
+vn K :m '<-2<CR>gv=gv
+
+" decorated yank
+vn <C-y> :call my#utils#decorated_yank()<CR>
+vn <Leader>Y :call my#utils#decorated_yank()<CR>
+
+" conflict resolution {{{
+" vim conflict resolutions. this is a little backwards in terms of how vim usually treats it.
+" for the three way merge bufspec //2 will be ours (left side), //3 is theirs (right side).
+" so these keymaps use > and < to point at which one you want
+function! s:toggle_diff() abort
+  if &diff
+    only
+  else
+    exe 'Gvdiffsplit!'
+  endif
+endfunction
+
+no <Leader>xx :call <SID>toggle_diff()<CR>
+no <Leader>x> :diffg //3<CR>
+no <Leader>x< :diffg //2<CR>
+no <Leader>xn :cnext<CR>
+no <Leader>xp :cprevious<CR>
+no <Leader>xm :cclose<CR>:G mergetool<CR>
+" }}}
+
+" when you want to adjust the tabs without remembering the commands
+no <Leader>t2 :setlocal ts=2 sw=2 sts=2<CR>
+no <Leader>t4 :setlocal ts=4 sw=4 sts=4<CR>
+
+" }}}
+
+" Colors and Style {{{
+set background=dark
+
+" terminal support {{{
+" get termguicolors working (tested with mac)
+" ref: https://tomlankhorst.nl/iterm-tmux-vim-true-color/
+set termguicolors
+
+" 256 color support
+set t_Co=256
+
+" rgb escape pattern for foreground and background colors
+let &t_8f="\e[38;2;%lu;%lu;%lum"
+let &t_8b="\e[48;2;%lu;%lu;%lum"
+
+" disable 'background color erase'
+set t_ut=
+
+" italics support
+let &t_ZH="\e[3m"
+let &t_ZR="\e[23m"
+
+" undercurl support
+let &t_Cs = "\e[4:3m"
+let &t_Ce = "\e[4:0m"
+
+" strikethrough support
+let &t_Ts = "\e[9m"
+let &t_Te = "\e[29m"
+" }}}
+
+" update airline when the colorscheme changes
+aug custom-colors | au!
+  au ColorSchemePre * hi clear | syntax reset
+  au ColorScheme * if get(g:,'loaded_airline',0) | call airline#switch_matching_theme() | endif
+aug END
+
+" apply whatever theme we're using
+exe 'colorscheme ' . g:my_theme
+" }}}
+
+" Filetypes {{{
+" set custom filetypes and behavior
+aug ftconfig | au!
+  " set *.pyx cython files as python syntax
+  au BufRead,BufNewFile *.pyx setfiletype python
+
+  " treat jsonl is json
+  " FIXME: these can be big so syntax so things will really slow down
+  au BufRead,BufNewFile *.jsonl setfiletype json
+
+  " Ruby, etc -> indent 2 spaces
+  au FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim setlocal ts=2 sw=2 sts=2
+
+  " vim commentstring: the default one doesn't include a space after the double quote
+  au FileType vim setlocal commentstring=\"\ %s
+
+  " markdown formatoptions: since it's documentation, enforce textwidth wrapping
+  au BufRead *.mkd,*.markdown,*.md setlocal fo+=t2
+aug END
+
+" }}}
+
+" Folding {{{
+" fold settings:
+" - only 1 column for showing fold markers
+" - set initial fold level to 99 to have all folds open
+" - make folds open automatically for some events
+set foldenable
+set foldcolumn=1
+set foldminlines=2
+set foldnestmax=5
+set foldlevel=99
+set foldopen=tag,percent,search,mark,quickfix,undo,insert
+
+" syntax folding is slow, default to manual unless in diff mode
+if &diff
+  set foldmethod=diff
+else
+  set foldmethod=manual
+endif
+
+" override foldtext to be more contextually aware
+set foldtext=my#utils#get_foldtext()
+
+" fold toggle shortcuts
+nn <Leader><Leader> za
+
+" better recursive close/open
+nn <Leader>rzc :normal [zV]zzC<ESC>
+nn <Leader>rzo :normal [zV]zzO<ESC>
+
+" folding overrides {{{
+aug folding-rules | au!
+  " disable automatic folding when in insert mode. this prevents a problem where adding the
+  " start of a new marker fold unfolds everything below it
+  au InsertEnter * if !exists('w:lastfdm') | let w:lastfdm=&foldmethod | setlocal foldmethod=manual | endif
+  au InsertLeave,WinLeave * if exists('w:lastfdm') | let &l:foldmethod=w:lastfdm | unlet w:lastfdm | endif
+
+  " allow .proto folding based on curl brace
+  au FileType proto setlocal foldmethod=marker foldmarker={,}
+
+  " dockerfiles to be folded with whatever the marker is
+  au FileType dockerfile setlocal foldmethod=marker
+
+  " filetypes that need more abbreviated fold text
+  au FileType markdown,python,yaml setlocal foldtext=CustomFoldText(0)
+
+  " filetypes that want explicitly manual folding
+  au FileType python,yaml setlocal foldmethod=manual
+
+  " whitelisted syntax folding files
+  au FileType go setlocal foldmethod=syntax
+aug END
+" }}}
+
+" }}}
+
+" Plugin Settings {{{
+
+" airline {{{
+" i don't use a patched font (nor do i want to)
+let g:airline_powerline_fonts=0
+let g:airline_symbols_ascii=1
+
+" theme and palette patches {{{
+" the airline theme should match the overall colorscheme (but the name uses underscores)
+let g:airline_theme=g:my_theme
+" let g:airline_theme_patch_func='AirlineThemePatch'
+
+" }}}
+
+" config: section format {{{
+" section z: minimal info - current_line/num_lines:col_num
+" let g:airline_section_a       (mode, crypt, paste, spell, iminsert)
+" let g:airline_section_b       (hunks, branch)[*]
+" let g:airline_section_c       (bufferline or filename, readonly)
+" let g:airline_section_gutter  (csv)
+" let g:airline_section_x       (tagbar, filetype, virtualenv)
+" let g:airline_section_y       (fileencoding, fileformat, 'bom', 'eol')
+let g:airline_section_z='%#__accent_bold#%l/%L:%v%#__restore__#'
+" let g:airline_section_error   (ycm_error_count, syntastic-err, eclim,
+"                                languageclient_error_count)
+" let g:airline_section_warning (ycm_warning_count, syntastic-warn,
+"                                languageclient_warning_count, whitespace)
+
+" section separators: i want simple boxes
+let g:airline_left_sep=''
+let g:airline_right_sep=''
+let g:airline_left_sep_alt='|'
+let g:airline_right_sep_alt='|'
+" }}}
+
+" custom symbols: mostly to use a halfway decent char without a patched font
+if !exists('g:airline_symbols')
+  let g:airline_symbols={}
+endif
+let g:airline_symbols.branch='⎇ '
+
+" speedup load times
+let g:airline_highlighting_cache=1
+
+" disable modified detection and hide things for inactive windows
+let g:airline_detect_modified=0
+let g:airline_inactive_collapse=1
+
+" don't show file encoding - it's wasted space
+let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
+
+" show abbreviated mode names instead of the full string
+let g:airline_mode_map={
+  \ '__' : '--',
+  \ 'n'  : 'N',
+  \ 'i'  : 'I',
+  \ 'R'  : 'R',
+  \ 'c'  : 'C',
+  \ 'v'  : 'V',
+  \ 'V'  : 'V-L',
+  \ '' : 'V-B',
+  \ 's'  : 'S',
+  \ 'S'  : 'S-L',
+  \ '' : 'S-B',
+  \ 't'  : 'T',
+  \ 'r'  : 'P',
+  \ 'rm' : 'P-M',
+\ }
+
+" extensions {{{
+" FIXME: figure out why tabline always shows, look at fern
+let g:airline_extensions=['ale', 'branch', 'searchcount', 'zoomwintab']
+
+" enabled extensions
+let g:airline#extensions#ale#enabled=1
+let g:airline#extensions#branch#enabled=1
+let g:airline#extensions#searchcount#enabled=1
+let g:airline#extensions#tabline#enabled=1
+let g:airline#extensions#tagbar#enabled=1
+let g:airline#extensions#zoomwintab#enabled=1
+
+" promising extensions
+" let g:airline#extensions#wordcount#enabled=1
+" let g:airline#extensions#flog#enabled=1
+" let g:airline#extensions#fern#enabled=1
+
+" config: airline-tabline {{{
+let g:airline#extensions#tabline#show_buffers=1
+let g:airline#extensions#tabline#show_tabs=1
+let g:airline#extensions#tabline#show_splits=0
+
+let g:airline#extensions#tabline#tab_min_count=0
+let g:airline#extensions#tabline#buffer_min_count=0
+
+let g:airline#extensions#tabline#show_tab_count=2
+let g:airline#extensions#tabline#exclude_preview=1
+
+let g:airline#extensions#tabline#show_tab_nr=1
+let g:airline#extensions#tabline#ctrlspace_show_tab_nr=1
+let g:airline#extensions#tabline#tab_nr_type=1
+let g:airline#extensions#tabline#tabnr_formatter='tabnr'
+
+let g:airline#extensions#tabline#show_tab_type=0
+
+let g:airline#extensions#tabline#buf_label_first=1
+let g:airline#extensions#tabline#buffers_label='B'
+let g:airline#extensions#tabline#tabs_label='T'
+let g:airline#extensions#tabline#formatter='unique_tail_improved'
+let g:airline#extensions#tabline#show_close_button=0
+
+let g:airline#extensions#tabline#buffer_nr_show=1
+let g:airline#extensions#tabline#buffer_nr_format='%s:'
+" let g:airline#extensions#tabline#fnamemod = ':p:.'
+
+" }}}
+
+" config: airline-branch {{{
+" abbrev commit without dirt/untracked checks
+let g:airline#extensions#branch#vcs_checks=[]
+let g:airline#extensions#branch#sha1_len=8
+" }}}
+
+" config: airline-tagbar {{{
+" mirror settings for tagbar
+let g:airline#extensions#tagbar#flags='f'
+let g:airline#extensions#tagbar#searchmethod='nearest'
+" }}}
+
+" config: airline-zoomwintab {{{
+" only show a marker for zoomed, make it consistent with tmux
+let g:airline#extensions#zoomwintab#status_zoomed_in = '+++'
+" }}}
+
+" config: airline-ale {{{
+let g:airline#extensions#ale#show_line_numbers=0
+" }}}
+
+" }}}
+
+" }}}
+
+" ale {{{
+let g:ale_set_signs=1
+let g:ale_linters={
+  \ 'go': [
+    \ 'revive',
+    \ 'gopls',
+    \ 'govet',
+  \ ],
+  \ 'sh': [],
+  \ 'bash': []
+\ }
+let g:ale_sign_warning='>>'
+let g:ale_sign_error='>>'
+
+let g:ale_completion_enabled=0
+
+let g:ale_echo_cursor=0
+let g:ale_echo_msg_error_str='E'
+let g:ale_echo_msg_warning_str='W'
+let g:ale_echo_msg_info_str='I'
+let g:ale_echo_msg_format='[%severity%] [%linter%] %s'
+
+let g:ale_lint_on_insert_leave=1
+let g:ale_lsp_suggestions=0
+let g:ale_lsp_show_message_severity='error'
+let g:ale_set_loclist=0
+let g:ale_set_quickfix=1
+let g:ale_set_highlights=0
+
+" shortcuts
+nn <Leader>an :ALENext<CR>
+nn <Leader>at :ALEToggle<CR>
+
+" linter config
+let g:ale_go_revive_options="-config ~/.config/dotfiles/lint/revive.toml"
+
+" floating preview {{{
+let g:ale_cursor_detail=1
+let g:ale_floating_preview=1
+let g:ale_close_preview_on_insert=1
+let g:ale_floating_preview_popup_opts='my#ale#get_popup_opts'
+" }}}
+
+" }}}
+
+" tagbar : FIXME(figure out the full package view) {{{
+let g:tagbar_compact=0 " 2 will show a blank line, no help
+let g:tagbar_iconchars=['▶ ', '▼ ']
+let g:tagbar_show_data_type=0
+let g:tagbar_show_tag_count=0
+let g:tagbar_show_linenumbers=0
+let g:tagbar_show_tag_linenumbers=0
+let g:tagbar_show_visibility=0
+let g:tagbar_silent=1
+let g:tagbar_sort=1
+let g:tagbar_use_cache=0
+let g:tagbar_wrap=0
+let g:tagbar_highlight_method='nearest'
+
+let g:tagbar_type_go={
+	\ 'ctagstype': 'go',
+	\ 'replace': 1,
+	\ 'kinds': [
+		\ 'p:package:0:0',
+		\ 'i:imports:1:0',
+		\ 'c:const:1:0',
+		\ 'v:vars:1:0',
+		\ 't:types',
+		\ 'n:interfaces',
+		\ 'w:fields',
+		\ 'e:embedded',
+		\ 'm:methods',
+		\ 'r:constructor',
+		\ 'f:functions'
+	\ ],
+	\ 'sro': '.',
+	\ 'kind2scope': {
+		\ 't': 'ctype',
+		\ 'n': 'ntype'
+	\ },
+	\ 'scope2kind': {
+		\ 'ctype': 't',
+		\ 'ntype': 'n'
+	\ },
+	\ 'ctagsbin': 'gotags',
+	\ 'ctagsargs': '-sort -silent'
+\ }
+
+" custom fork setting
+let g:tagbar_dir_files=0
+
+" colors
+hi! link TagbarScope Normal
+hi! link TagbarKind Comment
+hi! link TagbarNestedKind Comment
+hi! link TagbarSignature Normal
+
+nn <Leader>tt :TagbarToggle<CR>
+
+" }}}
+
+" netrw {{{
+let g:netrw_altv=1
+let g:netrw_banner=0
+let g:netrw_browse_split=0
+let g:netrw_liststyle=3
+let g:netrw_winsize=25
+" }}}
+
+" vim-go {{{
+" vsplit the file when opening up the test
+let g:go_alternate_mode='vsplit'
+
+" ask for types when we need them
+let g:go_auto_type_info=0
+
+" always prefer the package specific templates
+let g:go_template_use_pkg=1
+
+" no code completion
+let g:go_code_completion_enabled=0
+let g:go_code_completion_icase=0
+
+" use gopls to lookup godef refs
+let g:go_def_mode='gopls'
+
+let g:go_doc_popup_window=1
+
+" use full formatting by default
+call my#go#set_format_mode('full')
+
+let g:go_fold_enable=['block', 'import', 'varconst', 'package_comment']
+
+" gopls config {{{
+let g:go_gopls_complete_unimported=v:false
+let g:go_gopls_deep_completion=v:false
+let g:go_gopls_gofumpt=v:true
+let g:go_gopls_staticcheck=v:false
+" }}}
+
+" add a little extra highlight color
+let g:go_highlight_types=0
+let g:go_highlight_extra_types=0
+let g:go_highlight_functions=1
+let g:go_highlight_string_spellcheck=0
+let g:go_highlight_format_strings=1
+
+let g:go_info_mode='gopls'
+let g:go_list_type='quickfix'
+let g:go_version_warning=0
+
+" debug
+let g:go_diagnostics_level=0
+" let g:go_debug=['lsp']
+
+" func: s:on_filetype_go: function to run for FileType=go {{{
+function! s:on_filetype_go() abort
+  call my#go#set_gopls_local()
+
+  " go uses tabs, not spaces
+  setlocal noexpandtab
+
+  " keybindings {{{
+  nm <Leader>gd <Plug>(go-def)
+  nm <Leader>gD <Plug>(go-def-type)
+  nm <Leader>gi <Plug>(go-info)
+  nm <Leader>gA <Plug>(go-alternate-edit)!
+  nm <Leader>gx <Plug>(go-doc)
+  nm <Leader>gX <Plug>(go-doc-browser)
+  nm <Leader>gc <Plug>(go-callers)
+  nm <Leader>gr <Plug>(go-rename)
+  nn <Leader>gI :GoImpl<CR>
+
+  vn <Leader>gP :GoPlay<CR>
+
+  " tests: all or just the function
+  nm <Leader>gT <Plug>(go-test)
+  nm <Leader>gta <Plug>(go-test)
+  nm <Leader>gtf <Plug>(go-test-func)
+
+  " use special behavior for these
+  nn <Leader>gav :call go#alternate#Switch(!0, 'vsplit')<CR>
+  nn <Leader>gas :call go#alternate#Switch(!0, 'split')<CR>
+  nn <Leader>gA :GoAlternate!<CR>
+
+  " vim-go GoDef utils
+  nm <Leader>gsd <Plug>(go-def-split)
+  nm <Leader>gvd <Plug>(go-def-vertical)
+  nm <Leader>gsD <Plug>(go-def-type-split)
+  nm <Leader>gvD <Plug>(go-def-type-vertical)
+
+  " guru
+  nm <Leader>ggd <Plug>(go-describe)
+  nm <Leader>ggi <Plug>(go-implements)
+
+  " change formatting behavior
+  nm <Leader>gf0 :call my#go#set_format_mode('none')<CR>
+  nm <Leader>gfs :call my#go#set_format_mode('simple')<CR>
+  nm <Leader>gff :call my#go#set_format_mode('full')<CR>
+
+  " tagbar alternative
+  no <Leader>go :!go doc %:p:h<CR>
+  no <Leader>g0 :!go doc -all %:p:h<CR>
+  " }}}
+endfunction
+" }}}
+
+" autocmd group: vim-go shortcuts and settings {{{
+aug golang-keys | au!
+  au FileType go call <SID>on_filetype_go()
+aug END
+" }}}
+" }}}
+
+" fugitive {{{
+let g:fugitive_dynamic_colors=1
+" }}}
+
+" bling {{{
+let g:bling_time=50
+let g:bling_count=2
+" }}}
+
+" terraform {{{
+let g:terraform_align=1
+let g:terraform_fmt_on_save=1
+" }}}
+
+" undotree {{{
+let g:undotree_WindowLayout=2
+let g:undotree_ShortIndicators=1
+let g:undotree_SplitWidth=30
+let g:undotree_TreeNodeShape='•'
+let g:undotree_DiffCommand='diff -U1'
+
+nn <Leader>ut :UndotreeToggle<CR>
+" }}}
+
+" fastfold {{{
+let g:fastfold_savehook=1
+
+" let these handle folding on their own (presumably from lsp)
+let g:fastfold_skip_filetypes=['go']
+" }}}
+
+" vim-commentary {{{
+map <Leader>c gcc<ESC>
+" }}}
+
+" vim-surround {{{
+" vim-surround settings
+" ww: wrap word with <char>
+" wl: wrap line with <char>
+" wm: wrap with foldmarker
+" wM = wrap with labeled foldmerker
+nm <Leader>ww ysiW
+nm <Leader>wl yss
+nm <Leader>wm ySSm
+nm <Leader>wM ySSM
+vm <Leader>wm Sm
+vm <Leader>wM SM
+
+aug surround | au!
+  " support for wrapping with marker boundaries
+  au BufEnter * call my#utils#set_marker_surround()
+aug END
+" }}}
+
+" vim-which-key {{{
+nn <silent> <Leader> :WhichKey '<Space>'<CR>
+vn <silent> <Leader> :WhichKeyVisual '<Space>'<CR>
+"}}}
+
+" zoomwintab.vim {{{
+nn <silent> <Leader>+ :ZoomWinTabToggle<CR>
+" }}}
+
+" quickpeek.vim {{{
+nn <Leader>qp :QuickpeekToggle<CR>
+" }}}
+
+" ultisnips {{{
+let g:UltiSnipsEditSplit='vertical'
+
+" XXX: <c-space> for some reason is the equivalent of <nul>, at least on mac
+let g:UltiSnipsExpandTrigger='<nul>'
+" }}}
+
+" vim-markdown {{{
+let g:vim_markdown_folding_disabled=0
+let g:vim_markdown_folding_style_pythonic=1
+let g:vim_markdown_override_foldtext=0
+let g:vim_markdown_conceal=0
+let g:vim_markdown_toc_autofit=0
+let g:vim_markdown_fenced_languages=[
+  \ 'go', 'go=golang',
+  \ 'python', 'py=python', 'py3=python',
+  \ 'shell=sh', 'bash=sh'
+  \ ]
+let g:vim_markdown_strikethrough=1
+let g:vim_markdown_new_list_item_indent=2
+let g:vim_markdown_edit_url_in='current'
+
+aug vim-markdown | au!
+  " disable the builtin markdown syntax and use vim-markdown
+  au BufRead *.mkd,*.markdown,*.md let b:current_syntax='markdown'
+aug END
+" }}}
+
+" buffergator {{{
+let g:buffergator_suppress_keymaps=1
+let g:buffergator_tab_statusline=1
+let g:buffergator_window_statusline=1
+
+nn <Leader>bb :BuffergatorToggle<CR>
+nn <Leader>bt :BuffergatorTabsToggle<CR>
+" }}}
+
+" }}}
+
+" vi:fdm=marker:fml=1
