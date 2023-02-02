@@ -1,0 +1,5 @@
+# show status of all worktrees
+for wt in $(git wt list | awk '{print $1}'); do echo $wt; pushd $wt; git s; popd; echo ""; done
+
+# prune branches that you don't need (they've been merged)
+git branch --no-column --no-color --merged origin/master | egrep -v '(^\* master|^\+ )' | xargs git branch -d

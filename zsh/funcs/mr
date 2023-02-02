@@ -1,0 +1,46 @@
+# vi:ft=zsh
+
+# mr: a function utility that wraps the glab cli to provide a little more useful tooling for working
+# with merge requests
+#
+# TODO:
+# - zstyle attributes for configuration? or `git config branch.<name>.<attr>`
+# - integrate with jira to automatically pull ticket descriptions and set as branch desc
+# - use: git config branch.<name>.mr.title
+
+emulate -L zsh
+
+case $1 in
+  # `mr new`: create a new merge request and use the last commit message as the default title
+  new)
+
+    glab mr new \
+      --title "$(git log -1 --pretty=%s)" \
+      --description "$(cat ~/.config/merge_template.txt)" \
+      --web \
+      --push \
+      ${@:2}
+    ;;
+
+  # `mr review <id>`: use vim-fugitive to initiate a local merge request review
+  review)
+    if [[ -n $(git status --porcelain) ]]; then
+      echo "must start with clean tree!"
+      return 1
+    fi
+
+    git checkout master
+    git pull
+
+    git checkout "$2"
+    git pull
+    git reset --soft origin/master
+    git reset
+
+    vim -c :G
+    ;;
+
+  *)
+    glab mr $@
+    ;;
+esac

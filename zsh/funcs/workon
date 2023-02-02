@@ -1,0 +1,61 @@
+#!/usr/bin/env zsh
+
+# workon: manage git worktrees. you need to run this from inside a git repository
+#
+# workon TICKET-1234
+# workon archive TICKET-1234 (todo)
+#
+# or: work on TICKET-1234
+
+# FIXME: need to make this more generalized
+pushd ${HOME}/work/repos/speedscale
+
+WORK_ROOT=${HOME}/work/wip
+WORK_NAME=${1:-}
+WORK_DIR=${WORK_ROOT}/${WORK_NAME}
+
+usage() {
+  print "Usage: workon NAME"
+}
+
+# if nothing given, just go to a new shell
+if [[ -z ${WORK_NAME} ]]; then
+  usage
+  return 1
+fi
+
+# ensure that we have the worktree dir made
+if [[ ! -d ${WORK_ROOT} ]]; then
+  echo "Workspace '${WORK_ROOT}' does not exist, creating"
+  mkdir -p ${WORK_ROOT}
+fi
+
+if [[ -z "$(git worktree list --porcelain | egrep "^worktree ${WORK_DIR}")" ]]; then
+  echo "Creating new worktree at ${WORK_DIR}"
+
+  # todo support different remotes
+  # also check if branch exists and use that instead of origin
+  git fetch
+  git pull
+
+  ref=""
+
+  if [ ! -z "$(git branch -l ${WORK_NAME})"]; then
+    ref=${WORK_NAME}
+  elif [ ! -z "$(git branch -rl origin/${WORK_NAME})" ]; then
+    ref=origin/${WORK_NAME}
+  fi
+
+  git worktree add --no-track -b ${WORK_NAME} ${WORK_DIR} ${ref}
+
+  # FIXME: is this the right thing to do here as far as tracking goes?
+  pushd ${WORK_DIR}
+  git branch -u origin/master
+
+  # FIXME: setup all of the git config stuff once you figure out jira crap
+
+  echo "Moving to workspace"
+else
+  echo "Opening workspace"
+  pushd ${WORK_DIR}
+fi

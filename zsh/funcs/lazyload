@@ -1,0 +1,36 @@
+# vi:ft=zsh:fdm=marker
+
+# wrappers for things that are costly to always run in a zshrc file
+
+emulate -L zsh
+
+# nvm {{{
+# loading nvm is super slow, so don't do it until we need it
+__nvm() {
+  unalias nvm
+
+  export NVM_DIR="$HOME/.nvm"
+  [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+}
+# }}}
+
+# pyenv: {{{
+# wrapped so that we can avoid running the pyenv eval script until we actually need it. once
+# we do that, then unalias it so we don't call this again
+__pyenv() {
+  unalias pyenv
+
+  eval "$(pyenv init -)"
+  pyenv $@
+}
+# }}}
+
+local wrappers=$@
+
+# apply wrappers making sure to only do so once
+for name in ${wrappers}; do
+  (( ${+aliases[${name}]} )) || alias ${name}="__${name}"
+done
+
+# only run once
+unfunction $0

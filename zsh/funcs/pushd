@@ -1,0 +1,23 @@
+# vi:ft=zsh
+
+# pushd wrapper that changes the behavior of `pushd +n` so that the stack item is moved to the front
+# rather than making the stack rotate and cycle around. this has the effect of creating a sort of
+# MRU dir stack list
+#
+# example, if the stack is:
+#   d0 d1 d2 d3 d4
+# `pushd +2` results in a new stack, cycled:
+#   d2 d3 d4 d0 d1
+# this way results in:
+#   d2 d0 d1 d3 d4
+#
+# see: "the directory stack" in https://zsh.sourceforge.io/Guide/zshguide03.html
+
+emulate -L zsh
+
+if [[ ARGC -eq 1 && "$1" == [+-]<-> ]] then
+  setopt pushdignoredups
+  builtin pushd ~$1
+else
+  builtin pushd "$@"
+fi

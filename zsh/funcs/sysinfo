@@ -1,0 +1,12 @@
+# vi:ft=zsh 
+
+# sysinfo: miscellaneous system information and functions
+
+emulate -L zsh
+
+# flags for checking platform quickly without needing to run `uname`
+[[ $OSTYPE =~ darwin ]] && typeset -gi __is_macos=1
+[[ $OSTYPE =~ linux ]] && typeset -gi __is_linux=1
+
+# only run once
+unfunction $0

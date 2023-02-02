@@ -1,0 +1,18 @@
+# vi:ft=zsh
+
+# utiltiy for timing things / profiling zsh stuff
+
+emulate -L zsh
+
+__tstart=$(gdate +%s%N)
+__tprev=$__tstart
+
+t() {
+  local now=$(gdate +%s%N)
+  local tdelta=$((($now - $__tprev)/1000000.0))
+  local tref=$((($now - $__tstart)/1000000.0))
+
+  printf '+ %-15.3f Δ %-15.3f %s\n' $tref $tdelta $1
+
+  __tprev=$now
+}

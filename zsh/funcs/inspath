@@ -1,0 +1,34 @@
+# vi:ft=zsh
+
+# utility to either prepend or append to $path, the default behavior being to prepend. call this
+# function like:
+#
+#   `inspath item [item ...]`: items are prepended to the beginning of $path
+#   `inspath -a item [item ...]`: items are appended to the end of $path
+
+emulate -L zsh
+
+if (( $# <= 0 )); then
+  echo "err: argument required"
+  return 1
+fi
+
+__append() { path+=$1 }
+__prepend() { path=($1 $path) }
+
+local fn=__prepend
+
+if [[ $1 == "-a" ]]; then
+  fn=__append
+  shift
+fi
+
+while (( $# > 0 )); do
+  if [[ -z $1 ]]; then
+    return 0
+  fi
+
+  $fn $1
+
+  shift
+done

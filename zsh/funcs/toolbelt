@@ -1,0 +1,73 @@
+# vi:ft=zsh
+
+# toobelt: a junk drawer full of miscellaneous tools and utilities either for zsh optimization or
+# just for general everyday use
+
+emulate -L zsh
+
+autoload -Uz sysinfo && sysinfo
+
+# recompinit: performs compinit with dump export and recompile of zcompdump
+recompinit() {
+  # redump
+  compinit -u -d
+  touch $HOME/.zcompdump
+
+  # recompile
+  zcompile -M $HOME/.zcompdump
+}
+
+# compinit_command: accepts a command that provides a subcommand of the format `completion zsh`,
+# sources the resulting zsh completion, and then rebuilds and recompiles zcompdump if it does not
+# already exist in the $_comps dictionary
+compinit_command() {
+  if (( ! ${+_comps[$1]} )); then
+    source <($1 completion zsh)
+    recompinit
+  fi
+}
+
+# nohist: wrapper that only exists to mark functions not intended to be recorded in history
+nohist() {
+  $@
+}
+
+# direnv wrapper that exposes commands 'on' and 'off' make working with direnv better. note that
+# `direnv on` comes with an implicit `direnv allow` because it's intended to be used manually and
+# not via any shell chdir hooks
+direnv() {
+  case $1 in
+
+    on)
+      direnv allow
+      eval "$(direnv export zsh)"
+      ;;
+
+    off)
+      # it's not easy to undo direnv once it's on if you don't rely on hooks, this is the best i
+      # could come up with despite how gross it is
+      pushd $TMPDIR
+      eval "$(direnv export zsh)"
+      popd
+      ;;
+
+    *)
+      command direnv $@
+  esac
+}
+
+# linux only: create a function wrapper for xdg-open (done this way to redirect output)
+if (( $__is_linux )); then
+  open() {
+    xdg-open ${1:-.} &> /dev/null
+  }
+fi
+
+# wrapper to print the current $SHLVL taking into account whether or not tmux is running. why does
+# that matter? $SHLVL will be 2 and not 1 for base shells inside tmux
+shlvl() {
+  print $(( $SHLVL - ${+TMUX} ))
+}
+
+# only run once
+unfunction $0

@@ -1,0 +1,12 @@
+# vi:ft=zsh
+
+# source: a hack wrapper for the source builtin that checks what is being sourced and attempts to Do
+# The Right Thing(TM), which is running `exec zsh` instead of `source ~/.zshrc`
+
+emulate -L zsh
+
+if [[ $1 == $HOME/.zshrc ]]; then
+  exec zsh
+else
+  builtin source $@
+fi

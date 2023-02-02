@@ -1,0 +1,174 @@
+# vi:ft=zsh
+
+# promptutil: utilities intended to be used to construct format strings for PROMPT, PS1, PS2, etc
+
+emulate -L zsh
+
+# the default time to switch from insert mode to normal mode is infuriatingly long so shorten it
+export KEYTIMEOUT=1
+
+# delcare an associative array of icons that can be referenced
+typeset -gA ps_icons=(
+  [success]="✔"
+  [warning]="‼"
+  [error]="✘"
+  [info]="ℹ"
+  [bullet]="•"
+  [bullet-large]="●"
+  [heart]="♥"
+  [branch]="⎇ "
+  [dot]="·"
+  [arrow-right]="❯"
+  [arrow-left]="❮"
+)
+
+# global parameters set via precmd hooks
+typeset -g ps_dirpath_
+typeset -g ps_context_
+typeset -g ps_error_
+
+# mode string mappings. keys should be a valid mode mapping or 'default'
+# ● or ❮
+typeset -gA ps_modes=(
+  [default]="%F{cyan}${ps_icons[arrow-right]}%f%{[1 q%}"
+  [vicmd]="%F{red}${ps_icons[bullet-large]}%f%{[4 q%}"
+)
+
+# string of the current mode
+typeset -g ps_mode_
+
+# func: __ps_dirpath: show path information {{{
+__ps_dirpath() {
+  # graciously stolen from morr: show either the path or if inside a git repo show the git repo name
+  # and relative path. repo name is kind of a hack, it's just the tail element from the origin url
+  #
+  # alternative: always show the path, but show the depth count from /: `<4>/current_dir`
+  #
+  # old way: abbrevate each dirname to a single character so: /path/to/foo/bar becomes /p/t/f/bar
+  # perl -pl0 -e "s|^${HOME}|~|;s|([^/])[^/]*/|$""1/|g" <<<${PWD}
+
+  local origin=$(git remote get-url origin 2>/dev/null)
+
+  if [[ -z $origin ]]; then
+    # this is not a git directory so just show what's here
+    ps_dirpath_="%F{cyan}%~%f "
+  else
+    # check if this repo has a custom name defined
+    local repo_name=$(git config --get repo.name)
+    if [[ -n $repo_name ]]; then
+      origin=$repo_name
+    fi
+
+    # get the relative path, trimmed of any final slash
+    local relpath=${$(git rev-parse --show-prefix)%/}
+
+    # repo relative prompt: magenta(repo_name) cyan(relative_path)
+    ps_dirpath_="%F{magenta}<${origin:t}>%f %F{cyan}${relpath:-~}%f "
+  fi
+}
+# }}}
+
+# func: ps_context: show information about contextual conditions {{{
+# TODO: support full and abbreviated forms with just icons
+__ps_context() {
+  # build up a list of symbols to convey context info. currently they are:
+  #
+  # - `↑name` if we are in a subshell with name being the command of the parent process
+  # - `E` when `direnv` has been activated
+  local markers=()
+
+  # if tmux is running, then $SHLVL will be 1 more than we want, so adjust it
+  local shlvl=$(( $SHLVL - ${+TMUX} ))
+
+  # are we in a subshell? note that this shows the command name for the parent process because there
+  # is more than one way we might be in a subshell (like vim `:shell`) so it's nice to know _who_
+  # put us here.
+  if (( $shlvl >= 2 )); then
+    # FIXME: find out a better way to do this
+    local pname=$(ps -c -o comm -p $PPID | tail -1)
+
+    if (( $? != 0 )); then
+      pname=${ZSH_ARGZERO}
+    fi
+
+    # note: the command from ps might look like `-zsh` so strip the hyphen
+    markers+="↑${${pname#-}:t}"
+  fi
+
+  # direnv: this seems to be the most "reliable" way of checking if direnv is activated that doesn't
+  # involve running `direnv status` and grepping the output
+  if (( ${+DIRENV_WATCHES} )); then
+    # ▼
+    markers+='env'
+  fi
+
+  # TODO: support arbitrary context markers?
+
+  # present the output if we have any markers at all ensuring a right-pad space
+  if (( ${#markers} )); then
+    # unicode middle dot U+00B7
+    local delim=" " #$ps_icons[dot]
+    ps_context_="%F{blue}<${(pj<$delim>)markers}>%f "
+  else
+    ps_context_=""
+  fi
+}
+# }}}
+
+# the histcmd that showed the error currently set
+typeset -gi __ps_error_histcmd=0
+
+# ps_error: set var ps_error_ value to the error styled return code of the last command if it was
+# non-zero, otherwise keep it blank. note: this goes out of its way to try and only allow showing
+# the error code in a prompt once.
+__ps_error() {
+  # TODO: inspiration p10k: show the unix signal name if the returncode matches
+
+  local retcode=$?
+
+  # if $? resolves to a non-zero code, check the $HISTCMD and __ps_error_histcmd to figure out what to do
+  # - if __ps_error_histcmd is different than $HISTCMD, show the error and set __ps_error_histcmd
+  # - if $HISTCMD is the same as __ps_error_histcmd, clear the error
+  #
+  # hack: we explicitly ignore ctrl-c (130), but we do want to make sure it shows the right vi mode
+  # indicator, so if we see it, handle it
+  if (( $retcode != 0 )); then
+    # sigint: don't do anything, but we're going to be in insert mode, so reset
+    # FIXME: why doesn't the mode indicator auto update?
+    if (( $retcode == 130 )); then
+      ps_mode_="${ps_modes[default]} "
+      return 0
+    fi
+
+    if (( ${__ps_error_histcmd:-0} != $HISTCMD )); then
+      ps_error_="%F{red}<${retcode}>%f "
+      typeset -gi __ps_error_histcmd=$HISTCMD
+    else
+      ps_error_=""
+    fi
+  # other case: non-zero exit code and it's a new command - reset
+  elif (( ${__ps_error_histcmd:-0} != $HISTCMD )); then
+    ps_error_=""
+  fi
+}
+
+# hook for mode selection to change the prompt indicator
+__ps_mode() {
+  ps_mode_="${ps_modes[$KEYMAP]:-$ps_modes[default]} "
+  zle reset-prompt
+}
+
+# we need to add hooks and such
+autoload -Uz add-zsh-hook add-zle-hook-widget
+
+# precmd hooks
+add-zsh-hook -Uz precmd __ps_context
+add-zsh-hook -Uz precmd __ps_dirpath
+add-zsh-hook -Uz precmd __ps_error
+
+# zle hooks
+add-zle-hook-widget -Uz zle-line-init __ps_mode
+add-zle-hook-widget -Uz zle-keymap-select __ps_mode
+
+# only run once
+unfunction $0
