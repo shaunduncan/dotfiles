@@ -59,9 +59,11 @@ function! my#utils#delete_view() abort
 
   let path=&viewdir . '/' . substitute(path, '/', '=+', 'g') . '='
 
-  call delete(path)
-
-  echo 'deleted view: '.path
+  if delete(path) != 0
+    echo 'failed to delete view'
+  else
+    echo 'deleted view: '.path
+  endif
 endfunction
 " }}}
 
@@ -75,58 +77,11 @@ function! my#utils#decorated_yank() abort
 endfunction
 " }}}
 
-" my#utils#get_foldtext() {{{
-" inspiration from: https://github.com/jrudess/vim-foldtext/blob/master/plugin/foldtext.vim
-function! my#utils#get_foldtext(full=1) abort
-  " shorthand
-  let l:fs=v:foldstart
-  let l:fe=v:foldend
-
-  " separator between start/end
-  let l:sep='  '
-
-  let l:start=getline(v:foldstart)
-  let l:end=getline(v:foldend)
-
-  if a:full == 0
-    let l:end=''
-    let l:sep=''
-  endif
-
-  " special case: if we have folding set on a marker, don't include it
-  if &foldmethod == 'marker'
-    let l:markers=split(&foldmarker, ',')
-
-    let l:start=substitute(l:start, '[\s\t]*'.l:markers[0].'$', '', 'g')
-    let l:end=''
-    let l:sep=''
-  endif
-
-  " the whitespace patterns
-  let l:wsLead='^[\s\t]*'
-  let l:wsTrail='[\s\t]*$'
-
-  " get each line with trailing whitespace removed
-  let l:start=substitute(l:start l:wsTrail, '', 'g')
-  let l:end=substitute(l:end, l:wsTrail, '', 'g')
-
-  " for the start, convert leading tabs to spaces
-  let l:lspaces=repeat(' ', &tabstop)
-  let l:start=substitute(matchstr(l:start, l:wsLead), '\t', l:lspaces, 'g') . substitute(l:start, l:wsLead, '', 'g')
-
-  " for the end, strip leading whitespace
-  let l:end=substitute(l:end, '^[\s\t]*', '', 'g')
-
-  " put them together to create the snippet
-  let l:snippet=l:start . l:sep . l:end
-  let l:info= '[' . (v:foldend - v:foldstart). ']'
-
-  " fill the empty space
-  let l:signwidth=2
-  let l:width=winwidth(0) - &numberwidth - &foldcolumn - l:signwidth
-  let l:fill=repeat('─', (l:width - len(l:snippet) - len(l:info) - 3))
-
-  return l:snippet . ' ' . l:fill . ' ' . l:info
+" my#utils#goto_mark {{{
+" exposed as :M and :M! - lets you vsplit and split (respectively) jumping to a global file mark.
+" example: `:M V` would vsplit to ~/.vimrc, `:M! Z` would split to ~/.zshrc
+function! my#utils#goto_mark(mark, hsplit) abort
+  exe (a:hsplit ? 'split' : 'vsplit') . " | norm '" . a:mark
 endfunction
 " }}}
 

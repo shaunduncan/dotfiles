@@ -1,8 +1,28 @@
+# vi:ts=4:sts=4:sw=4:et
+
 # snippets for all filetypes
 priority 10
 
 # add a note statement with my user name. if the current file has a commentstring defined then it
 # will be used as a prefix for the note entered
 snippet "(todo|fixme|xxx|note)" "code notes" brtA
-`!v printf(len(&cms) ? &cms : '%s', '') ``!p snip.rv = match.group(1).upper()`: (`whoami`) $1
+`!p
+if snip.opt('g:my_snips_sign_todos', 1):
+    t[1] = f"({vim.eval('$USER')})"
+snip.rv = cms_token(0) + ' ' + match.group(1).upper()
+`: $1 `!p snip.rv = cms_token(1)`
 endsnippet
+
+global !p
+
+# get a numbered part of a comment string
+def cms_token(n):
+    cms = vim.eval('&commentstring')
+    tokens = [s.strip() for s in cms.split('%s') if s.strip()]
+
+    try:
+        return tokens[n]
+    except IndexError:
+        return ''
+
+endglobal

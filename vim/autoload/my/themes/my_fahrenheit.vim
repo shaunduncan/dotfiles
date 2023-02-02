@@ -2,7 +2,7 @@
 
 scriptencoding utf-8
 
-let g#my#themes#my_fahrenheit#palette={
+let g:my#themes#my_fahrenheit#palette={
   \ '0': '#000000',
   \ '1': '#af875f',
   \ '2': '#ffaf5f',

@@ -1,6 +1,6 @@
 # terminal env vars
 env:
-  TERM: xterm-256color
+  TERM: alacritty
 
 window:
   padding:
@@ -25,6 +25,7 @@ font:
   size: 12.0
   normal:
     family: 'Triplicate B Code'
+    # family: 'Fixedsys Excelsior 3.01'
 
   # all fonts inherit from normal, but the bold for triplicate is a little too heavy
   # so override those to be either normal or italic
@@ -32,9 +33,6 @@ font:
     style: Regular
   bold_italic:
     style: Italic
-
-  # the external display used most of the time is non-retina, don't use thin strokes
-  use_thin_strokes: false
 
   # the triplicate box drawing characters don't look right for double line borders
   # so just use the builtin font
@@ -70,9 +68,68 @@ colorschemes:
       *colorscheme-dalton-normal
     dim:
       *colorscheme-dalton-normal
+  google-dark: &colorscheme-google-dark
+    primary:
+      background: '#000000'
+      foreground: '#ffffff'
+
+    # invert colors for selection
+    selection:
+      text: CellBackground
+      background: CellForeground
+
+    # palette
+    normal: &colorscheme-google-dark-normal
+      black:   '#000000'
+      red:     '#cc342b'
+      green:   '#198844'
+      yellow:  '#f96a38'
+      blue:    '#3971ed'
+      magenta: '#a36ac7'
+      cyan:    '#32bcd9'
+      white:   '#ffffff'
+
+    # use consistent colors
+    bright:
+      *colorscheme-google-dark-normal
+    dim:
+      *colorscheme-google-dark-normal
+  tomorrow-night-bright : &colorscheme-tomorrow-night-bright
+    primary:
+      background: '#000000'
+      foreground: '#ffffff'
+
+    # invert colors for selection
+    selection:
+      text: CellBackground
+      background: CellForeground
+
+    # palette
+    normal: &colorscheme-tomorrow-night-bright-normal
+      black:   '#000000'
+      red:     '#d54e53'
+      green:   '#b9ca4a'
+      yellow:  '#e7c547'
+      blue:    '#2b5b77'
+      magenta: '#c397d8'
+      cyan:    '#70c0b1'
+      white:   '#ffffff'
+
+    # use consistent colors
+    bright:
+      black:   '#333333'
+      red:     '#d54e53'
+      green:   '#b9ca4a'
+      yellow:  '#e7c547'
+      blue:    '#2b5b77'
+      magenta: '#c397d8'
+      cyan:    '#70c0b1'
+      white:   '#ffffff'
+    dim:
+      *colorscheme-tomorrow-night-bright-normal
 
 colors:
-  *colorscheme-dalton
+  *colorscheme-tomorrow-night-bright
 
 # disable visual bell
 bell:
@@ -87,15 +144,15 @@ cursor:
   style:
     shape: Block
     blinking: Always
-  blink_interval: 500
+  blink_interval: 250
   unfocused_hollow: true
   thickness: 0.5
 
 live_config_reload: true
 
-# default shell
+# default shell: use the brew installed version
 shell:
-  program: /bin/zsh
+  program: /usr/local/bin/zsh
   args:
     - --login
 
@@ -133,9 +190,11 @@ key_bindings:
   - { key: Q, mods: Command, action: Quit }
   - { key: W, mods: Command, action: Quit }
 
-  # let ctrl-space/enter through so it can be used for vim key mappings
+  # let ctrl-space/enter through so it can be used for key mappings. ctrl-enter is a little weird
+  # though: we're making up an escape code that doesn't do anything else, in this case "ESC M" and
+  # term applications can look for this
   - { key: Space, mods: Control, action: ReceiveChar }
-  - { key: Return, mods: Control, action: ReceiveChar }
+  - { key: Return, mods: Control, chars: "\x1bM" }
 
   # allow creating a new window easily
   - { key: N, mods: Command, action: CreateNewWindow }

@@ -17,18 +17,12 @@ function! my#go#set_format_mode(mode) abort
     let g:go_fmt_autosave=1
     let g:go_fmt_command='gopls'
     let g:go_imports_autosave=1
-    let g:go_imports_mode='gopls'
   endif
 endfunction
 " }}}
 
-" my#go#reload_gopls : i always forget the mapping i setup {{{
-function! my#go#reload_gopls() abort
-  exe ':GoBuildTags ""'
-endfunction
-" }}}
-
 " my#go#set_gopls_local : set the gopls local package prefix {{{
+" NOTE: this is likely unnecessary - the gopls setting in vim-go can accept a string
 function! my#go#set_gopls_local() abort
   let g:go_gopls_local=trim(system('{cd '. shellescape(expand('%:h')) .' && go list -m;}'))
 endfunction

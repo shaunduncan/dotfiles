@@ -12,4 +12,7 @@ let g:my_box_heavy_tb  = ['━', '│', '━', '│', '┍', '┑', '┙', '┕'
 let g:my_box_double_tb = ['═', '│', '═', '│', '╒', '╕', '╛', '╘']
 " }}}
 
+" shorthand: split and vsplit global file marks
+command! -nargs=1 -bang M call my#utils#goto_mark(<f-args>, <bang>0)
+
 " vi:fdm=marker

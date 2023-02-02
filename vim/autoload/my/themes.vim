@@ -4,7 +4,7 @@ scriptencoding utf-8
 
 " opinionated mapping of terminal color codes. for 16 ansi color codes, each character is used
 " to find the corresponding gui hex color from a palette
-let s:term_palette='08B9DEC318BADEC7'
+let s:term_palette='08B9DFC318BADFC7'
 
 " opinionated naming for what each key 0-F in a color palette represents. when creating a
 " colorscheme here, we'll export a named palette that has these keys
@@ -23,55 +23,103 @@ let s:color_names=[
   \ 'green',
   \ 'cyan',
   \ 'blue',
+  \ 'purple',
   \ 'magenta',
-  \ 'deprecated',
   \ ]
 
 " s:termcolor : get the number value for cterm[0-F] {{{
+function! <SID>termcolor(color) abort
+  return str2nr(s:term_palette[str2nr(a:color, 16)], 16)
+endfunction
+" }}}
+
+" s:airline_colorset: get the colorset list of term numbers for airline themes {{{
 function! <SID>airline_colorset(palette, fgbg) abort
-  let l:fg=a:fgbg[0]
-  let l:bg=a:fgbg[1]
+  let l:fg = a:fgbg[0]
+  let l:bg = a:fgbg[1]
+
+  let l:guifg = ''
+  let l:termfg = ''
+
+  let l:guibg = ''
+  let l:termbg = ''
 
   " this is a little weird but the fg/bg string would be the hex value of the *position* in the
   " term_palette string. the char at that position is the hex value of the term number to use
-  let l:termfg=str2nr(s:term_palette[str2nr(l:fg, 16)], 16)
-  let l:termbg=str2nr(s:term_palette[str2nr(l:bg, 16)], 16)
+  if has_key(a:palette, l:fg)
+    let l:guifg = a:palette[l:fg]
+    let l:termfg = <SID>termcolor(l:fg)
+  endif
 
-  return [a:palette[l:fg], a:palette[l:bg], l:termfg, l:termbg]
+  if has_key(a:palette, l:bg)
+    let l:guibg = a:palette[l:bg]
+    let l:termbg = <SID>termcolor(l:bg)
+  endif
+
+  return [l:guifg, l:guibg, l:termfg, l:termbg]
 endfunction
 " }}}
 
 " my#themes#to_airline : install a palette map as an airline theme {{{
 function! my#themes#to_airline(name) abort
   " get the palette as a shorthand var
-  let l:theme=g:my#themes#{a:name}#palette
+  let l:theme = g:my#themes#{a:name}#palette
 
   " configure the palette
-  let l:palette={}
+  let l:palette = {}
 
   " shorthand partial
-  let l:Air=function('<SID>airline_colorset', [l:theme])
+  let l:Air = function('<SID>airline_colorset', [l:theme])
 
   " ones we use repetitively
-  let l:x=l:Air('42')
-  let l:y=l:Air('41')
-  let l:z=l:Air('71')
+  let l:x = l:Air('42')
+  let l:y = l:Air('41')
+  let l:z = l:Air('71')
 
-  " standard colors
-  let l:palette.normal=airline#themes#generate_color_map(l:Air('0B'), l:x, l:y)
-  let l:palette.insert=airline#themes#generate_color_map(l:Air('0D'), l:x, l:y)
-  let l:palette.replace=airline#themes#generate_color_map(l:Air('08'), l:x, l:y)
-  let l:palette.visual=airline#themes#generate_color_map(l:Air('0E'), l:x, l:y)
-  let l:palette.inactive=airline#themes#generate_color_map(l:Air('31'), l:Air('31'), l:Air('31'))
+  let l:err = l:Air('08')
+  let l:warn = l:Air('09')
 
-  " modified colors
-  let l:palette.normal_modified={'airline_c': l:z}
-  let l:palette.insert_modified={'airline_c': l:z}
-  let l:palette.replace_modified={'airline_c': l:z}
-  let l:palette.visual_modified={'airline_c': l:z}
+  " standard mode colors:
+  " normal    black on green
+  " insert    black on blue
+  " replace   black on red
+  " command   black on orange
+  " visual    black on yellow
+  " terminal  black on magenta
+  " inactive  gray on darkgray
+  let l:palette.normal = airline#themes#generate_color_map(l:Air('0B'), l:x, l:y)
+  let l:palette.insert = airline#themes#generate_color_map(l:Air('0D'), l:x, l:y)
+  let l:palette.replace = airline#themes#generate_color_map(l:Air('08'), l:x, l:y)
+  let l:palette.commandline = airline#themes#generate_color_map(l:Air('09'), l:x, l:y)
+  let l:palette.visual = airline#themes#generate_color_map(l:Air('0A'), l:x, l:y)
+  let l:palette.terminal = airline#themes#generate_color_map(l:Air('0F'), l:x, l:y)
+  let l:palette.inactive = airline#themes#generate_color_map(l:Air('31'), l:Air('31'), l:Air('31'))
+
+  " modified and error/warning colors
+  " FIXME: there is also one called airline_term, what does it do
+  for mode in ['normal', 'commandline', 'insert', 'replace', 'visual', 'terminal']
+    let l:palette[mode.'_modified'] = {
+      \ 'airline_c': l:z,
+      \ 'airline_error': l:err,
+      \ 'airline_warning': l:warn
+      \ }
+
+    let l:palette[mode]['airline_error'] = l:err
+    let l:palette[mode]['airline_warning'] = l:warn
+  endfor
+
+  " accents: ensure they match our palette
+  let l:palette.accents = {
+      \ 'red': l:Air('8.'),
+      \ 'orange': l:Air('9.'),
+      \ 'yellow': l:Air('A.'),
+      \ 'green': l:Air('B.'),
+      \ 'blue': l:Air('D.'),
+      \ 'purple': l:Air('E.'),
+    \ }
 
   " export the palette
-  let g:airline#themes#{a:name}#palette=l:palette
+  let g:airline#themes#{a:name}#palette = l:palette
 
 endfunction
 " }}}
@@ -141,7 +189,7 @@ function! my#themes#to_colorscheme(name) abort
   call l:Hi('19', 'IncSearch')
   call l:Hi('1A', 'Search', 'Substitute')
   call l:Hi('20', 'Folded')
-  call l:Hi('3.', 'MatchParen', 'SpecialKey', 'NonText', 'Whitespace')
+  call l:Hi('3.', 'SpecialKey', 'NonText', 'Whitespace')
   call l:Hi('30', 'LineNr', 'SignColumn')
   call l:Hi('31', 'StatusLineNC', 'TabLine', 'TabLineFill')
   call l:Hi('32', 'FoldColumn')
@@ -149,7 +197,9 @@ function! my#themes#to_colorscheme(name) abort
   call l:Hi('50', 'Normal', 'WildMenu', 'Cursor')
   call l:Hi('62', 'PMenu')
   call l:Hi('62', 'PMenuSel')
-  call l:Hi('8.', 'Debug', 'Macro', 'Exception', 'TooLong', 'Underlined', 'VisualNOS', 'WarningMsg')
+  call l:Hi('8.', 'Debug', 'Macro', 'Exception', 'TooLong', 'VisualNOS', 'WarningMsg')
+  call l:Hi('9.', 'Underlined')
+  call l:Hi('A0', 'MatchParen')
   call l:Hi('B.', 'ModeMsg', 'MoreMsg')
   call l:Hi('B1', 'TabLineSel')
   call l:Hi('D.', 'Directory', 'Question', 'Title')
@@ -164,7 +214,8 @@ function! my#themes#to_colorscheme(name) abort
 
   call <SID>hi_attr('bold', 'Bold', 'CursorLineNr')
   call <SID>hi_attr('italic', 'Italic')
-  call <SID>hi_attr('reverse', 'ErrorMsg', 'WildMenu')
+  call <SID>hi_attr('reverse', 'ErrorMsg', 'WildMenu', 'MatchParen')
+  call <SID>hi_attr('underline', 'Underlined')
   call <SID>hi_attr('NONE',
     \ 'Substitute',
     \ 'CursorColumn',
@@ -186,7 +237,7 @@ function! my#themes#to_colorscheme(name) abort
   " customization options {{{
   " what color should be used for Folded
   if has_key(g:, 'my_theme_fold')
-    exe 'hi Folded guibg=' . g:my_theme_palette_named.bg . ' guifg=' . g:my_theme_fold
+    exec 'hi Folded guibg=' . g:my_theme_palette_named.bg . ' guifg=' . g:my_theme_fold
   endif
 
   " should we sync the color of FoldColumn with whatever Folded is
@@ -197,12 +248,12 @@ function! my#themes#to_colorscheme(name) abort
 	" minimal cursorline info
   if get(g:, 'my_theme_minimal_cursorline', 1) == 1
     hi clear CursorLine
-    exe 'hi CursorLineNr guifg=' . g:my_theme_palette_named.orange
+    exec 'hi CursorLineNr guifg=' . g:my_theme_palette_named.orange
   endif
 
   " make the current line number stand out
   if get(g:, 'my_theme_cursorline_color', '') !=# ''
-    exe 'hi CursorLineNr guifg=' . g:my_theme_palette_named[g:theme_cursorline_color]
+    exec 'hi CursorLineNr guifg=' . g:my_theme_palette_named[g:theme_cursorline_color]
   endif
   " }}}
 
@@ -221,7 +272,7 @@ function! my#themes#to_colorscheme(name) abort
   call <SID>hi_attr('NONE', 'Identifier', 'Define', 'Operator', 'Type')
   " }}}
 
-  " highlights for common plugins {{{
+  " common highlights {{{
   call l:Hi('08', 'ErrorHighlight', 'SpellBad')
   call l:Hi('09', 'WarningHighlight')
   call l:Hi('0C', 'HintHighlight', 'SpellLocal')
@@ -281,44 +332,171 @@ function! my#themes#to_colorscheme(name) abort
     \ 'ALEFloatingPreviewWarning',
     \ 'ALEFloatingPreviewStyleWarning')
   " }}}
+
+  " fzf {{{
+  " fzf1: ctermfg=161 ctermbg=238 guifg=#E12672 guibg=#565656
+  " fzf2: ctermfg=151 ctermbg=238 guifg=#BCDDBD guibg=#565656
+  " fzf3: ctermfg=252 ctermbg=238 guifg=#D9D9D9 guibg=#565656
+  " call l:Hi('08', 'fzf1')
+  " call <SID>hi_attr('reverse', 'fzf1', 'fzf2', 'fzf3')
+  " }}}
+
+  " vimwiki {{{
+  call l:Hi('2.', 'VimwikiCheckBoxDone')
+  call <SID>hi_attr('italic,strikethrough', 'VimwikiCheckBoxDone')
+  " }}}
 endfunction
 " }}}
 
 " func s:hi() {{{
-function! <SID>hi(palette, category, fgbg, ...)
+function! <SID>hi(palette, category, fgbg, ...) abort
   let l:fg=a:fgbg[0]
   let l:bg=a:fgbg[1]
 
-  let l:params=''
+  " translated
+  let l:tr_fg=get(a:palette, l:fg, '')
+  let l:tr_bg=get(a:palette, l:bg, '')
 
-  if has_key(a:palette, l:fg)
-    let l:params=printf("%s %sfg='%s'", l:params, a:category, a:palette[l:fg])
+  if a:category !=# 'gui'
+    let l:tr_fg=<SID>termcolor(l:fg)
+    let l:tr_bg=<SID>termcolor(l:bg)
   endif
 
-  if has_key(a:palette, l:bg)
-    let l:params=printf("%s %sbg='%s'", l:params, a:category, a:palette[l:bg])
+  let l:params=''
+
+  if l:fg !=# '' && l:fg !=# '.'
+    let l:params=printf("%s %sfg='%s'", l:params, a:category, l:tr_fg)
+  endif
+
+  if l:bg !=# '' && l:bg !=# '.'
+    let l:params=printf("%s %sbg='%s'", l:params, a:category, l:tr_bg)
   endif
 
   for name in a:000
-    exe 'hi ' . name . ' ' . l:params
+    try
+      exec 'hi ' . name . ' ' . l:params
+    catch
+      echom 'ERROR: hi '.name.' '.l:params.': '.a:fgbg
+    endtry
   endfor
 endfunction
 " }}}
 
 " func s:hi_attr() {{{
-function! <SID>hi_attr(attr, ...)
+function! <SID>hi_attr(attr, ...) abort
   for name in a:000
-    exe printf("hi %s gui='%s' cterm='%s'", name, a:attr, a:attr)
+    exec printf("hi %s gui='%s' cterm='%s'", name, a:attr, a:attr)
   endfor
 endfunction
 " }}}
 
 " func s:hi_link {{{
-function! <SID>hi_link(target, ...)
+function! <SID>hi_link(target, ...) abort
   for name in a:000
-    exe 'hi! link ' . name . ' ' . a:target
+    exec 'hi! link ' . name . ' ' . a:target
   endfor
 endfunction
 " }}}
+
+function! s:maybe(src, dst, attr) abort
+  let l:src_group=hlget(a:src)
+
+  if len(l:src_group) < 1
+    return
+  endif
+
+  if has_key(l:src_group, a:attr)
+    exec printf('hi %s %s=%s', a:dst, a:attr, l:src_group[0][a:attr])
+  endif
+endfunction
+
+function! my#themes#apply_theme_overrides() abort
+  " apply any specific overrides
+  if !has_key(g:, 'my_theme_overrides')
+    return
+  endif
+
+  for cfg in g:my_theme_overrides
+    " build the config we will apply
+    let l:spec=copy(cfg)
+    let l:groups=remove(l:spec, 'group')
+
+    if has_key(l:spec, 'from')
+      " copy the colors from somewhere else
+      let l:spec=extend(get(hlget(l:spec.from, v:true), 0, {}), l:spec)
+      unlet l:spec['from']
+
+      " fix: we need to remove the 'cleared' key if it's there otherwise the colors won't take
+      if has_key(l:spec, 'cleared')
+        unlet l:spec.cleared
+      endif
+    endif
+
+    " attrs just need to apply to cterm/gui directly
+    if has_key(l:spec, 'attrs')
+      let l:value=remove(l:spec, 'attrs')
+
+      let l:attrs=split(l:value, ',')
+      let l:value={}
+
+      for attr in l:attrs
+        let l:value[trim(attr)]=v:true
+      endfor
+
+      let l:spec['gui']=l:value
+      let l:spec['cterm']=l:value
+    endif
+
+    " what strategy are we using here? merge or replace (default replace)
+    if has_key(l:spec, 'strategy')
+      let l:strategy=remove(l:spec, 'strategy')
+    else
+      let l:strategy='merge'
+    endif
+
+    " if we're performing a link, make sure we force it
+    if has_key(l:spec, 'linksto')
+      let l:spec['force']=v:true
+    endif
+
+    " apply the spec to each group
+    let l:hlcfg=[]
+    for group in l:groups
+      let l:groupcfg=copy(l:spec)
+      let l:groupcfg.name=group
+
+      if l:strategy == 'replace'
+        exec 'hi clear '.group
+      else
+        let l:cur=get(hlget(group, v:true), 0, {})
+
+        if has_key(l:cur, 'cleared')
+          unlet l:cur.cleared
+        endif
+
+        " are we supposed to merge into whatever the original colors are? this is a little tricky (maybe i'm
+        " doing this wrong), i want to merge the overrides to whatever a colorscheme or plugin sets it to, but
+        " if this runs multiple times, the 'original' value will be what we set on the previous run. that's
+        " important if we're merging with a group that is set with a default. so instead, add a step to clear
+        " the group, then check if hlget() gives you back the thing with default set
+
+        " clear and check for any default style (don't resolve the group)
+        exec 'hi clear '.group
+        let l:check=get(hlget(group), 0, {})
+
+        " start with this, merge the previous original
+        if has_key(l:check, 'default') && l:check.default
+          let l:cur=extend(get(hlget(group, v:true), 0, {}), l:cur, 'force')
+        endif
+
+        let l:groupcfg=extend(l:cur, l:groupcfg, 'force')
+      endif
+
+      call add(l:hlcfg, l:groupcfg)
+    endfor
+
+    call hlset(l:hlcfg)
+  endfor
+endfunction
 
 " vi:fdm=marker

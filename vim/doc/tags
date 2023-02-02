@@ -1,4 +1,3 @@
+g:my_theme_palette	my.txt	/*g:my_theme_palette*
 my	my.txt	/*my*
 my-contents	my.txt	/*my-contents*
-my.vim	my.txt	/*my.vim*
-g:my_theme_palette	my.txt	/*g:my_theme_palette*
