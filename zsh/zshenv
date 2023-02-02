@@ -1,0 +1,107 @@
+# vi:fdm=marker
+
+export ZSH=$HOME/.zsh
+
+# where can we fine my dotfiles
+export DOTDIR=$HOME/.config/dotfiles
+
+# option overrides
+setopt combining_chars
+setopt no_global_rcs
+
+# path additions: add my functions to fpath and add some common locations to cdpath
+fpath=($ZSH/funcs $DOTDIR/zsh/funcs $fpath)
+cdpath=(~/work/repos ~/work/deploy ~/work/wip ~/junk)
+
+# required functions
+autoload -Uz inspath
+autoload -Uz sysinfo && sysinfo
+
+
+# where homebrew drops things
+inspath /usr/local/bin
+
+# add locations for some of my scripts
+inspath $DOTDIR/bin $HOME/bin $HOME/.local/bin
+
+# default editor is vim, duh
+export EDITOR=vim
+
+# most applications infer these, but set them anyway
+export XDG_CONFIG_HOME=$HOME/.config
+export XDG_DATA_HOME=$HOME/.local/share
+
+# honored by some terminal applications: ref https://bixense.com/clicolors
+# on mac this enables color output for `ls`
+export CLICOLOR=1
+
+# i don't recall why i added this to begin with but i believe it's for cpython extensions on mac
+# where this is used as a flag to `gcc`
+export ARCHFLAGS="-arch $CPUTYPE"
+
+# configure less as the preferred pager and set options
+export PAGER=less
+
+# options:
+# -F: don't page if the whole buffer fits on screen
+# -R: support ansi color sequences and osc 8 hyperlinks
+# -X: disable termcap init/deinit so that alt screen works correctly
+# -S: don't wrap long lines (-# 1 performs horizontal scrolling 1 char at a time)
+# -i: ignore case in searching and perform incremental searches
+# -N: show line numbers with a column width of 4
+#
+# colors:
+# - line numbers: ansi color 240 fg, normal bg
+# - search results: black fg, yellow bg
+# - error messages: black fg, red bg
+# - rscroll indicator: cyan fg
+# - prompt: reset
+# 
+# ref less(1): the color strings need to be "ended" with $ otherwise they break
+local __less=(
+  -F
+  -R
+  -X
+  -S -# 1
+  -i --incsearch
+  --line-num-width 4
+  --use-color
+  -DN240$
+  -DSky$
+  -DEkr$
+  -DRc$
+  -DP$
+)
+export LESS=${(j. .)__less}
+unset __less
+
+# platform-specific things
+if (( $__is_linux )); then
+  # This was some weird xfce thing with tmux panes
+  export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/$(pgrep -U $USERNAME xfce4-session)/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
+elif (( $__is_macos )); then
+  # only add this to the path on mac, it won't exist on linux
+  # inspath $HOME/Library/Python/3.9/bin
+
+  # this makes the directories on mac blue and not cyan
+  export LSCOLORS=Exfxcxdxbxhedxhbagacad
+fi
+
+# load secrets if they exist
+[[ -f $HOME/.secrets.env ]] && source $HOME/.secrets.env
+
+# XXX: when using minikube as the machine's docker engine, the documentation suggests just plainly
+# adding `eval "$(minikube docker-env)` to zshrc. in my experience this was taking about 300ms on
+# average to actually complete and all it would do is export the env vars below. to hasten things,
+# just assume these are always correct and export them statically. this may not always work.
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.64.4:2376"
+export DOCKER_CERT_PATH="$HOME/.minikube/certs"
+export MINIKUBE_ACTIVE_DOCKERD="minikube"
+export USE_GKE_GCLOUD_AUTH_PROVIDER="True"
+
+# android
+export ANDROID_HOME=~/Library/Android/sdk
+export PATH=${PATH}:${ANDROID_HOME}/platform-tools
+export PATH=${PATH}:${ANDROID_HOME}/build-tools/33.0.1
+export PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin
