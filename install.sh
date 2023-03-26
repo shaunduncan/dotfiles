@@ -67,7 +67,7 @@ fi
 
 # linux: this assumes debian-based
 if [[ "${platform}" == "linux" ]]; then
-  sudo apt update -qq && sudo apt install -y --no-install-recommends \
+  sudo apt update && sudo apt install -y --no-install-recommends \
     ca-certificates \
     cargo \
     curl \
