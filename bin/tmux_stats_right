@@ -4,42 +4,65 @@ import datetime
 import json
 import locale
 import os
-import re
 import subprocess
 import sys
 import time
 
 from operator import itemgetter, methodcaller
 
-is_mac = sys.platform == 'darwin'
-
-if not is_mac:
+try:
     import alsaaudio
+except ImportError:
+    alsaaudio = None
+
+try:
     import dbus
+except ImportError:
+    dbus = None
 
-import pytz
-
+DARWIN = sys.platform == 'darwin'
+DIVIDER = '│'
 
 def osa(s):
-    return subprocess.check_output(f"osascript -e '{s}'", shell=True).strip().decode()
+    return subprocess.check_output(f"osascript -e '{s}'".encode(), shell=True).strip().decode('utf8')
 
 
-def sysctl(s):
-    return subprocess.check_output(f"sysctl {s}", shell=True).strip().decode()
+def get_volume():
+    if DARWIN:
+        muted = osa('output muted of (get volume settings)') == 'true'
+        volume = osa('output volume of (get volume settings)') + '%'
+    else:
+        try:
+            mixer = alsaaudio.Mixer(cardindex=1)
+        except Exception as e:
+            return f'ERR:{e}'
+        else:
+            muted = 'yes' in subprocess.check_output('pactl list sinks | grep Mute', shell=True)
+            volume = mixer.getvolume()[0] + '%'
+
+    if muted:
+        return f'#[fg=red]♫ {volume}#[fg=default]'
+    else:
+       return f'♫ {volume}'
 
 
 def get_current_track():
-    # don't do this on mac
-    if is_mac:
-        try:
-            artist = osa('tell application "Spotify" to artist of current track')
-        except subprocess.CalledProcessError:
-            # spotify isn't running
-            return ''
-        else:
-            title = osa('tell application "Spotify" to name of current track')
-            playback_status = osa('tell application "Spotify" to player state')
-            info = 'y tho'
+    if DARWIN:
+        full_status = subprocess.check_output(['osascript', os.path.expanduser('~/bin/spotify_current.scpt')]).strip().decode('utf8')
+        full_status = full_status.split('SDUNCAN')
+
+        if not full_status:
+            return
+
+        playback_status = full_status[0].strip(', ')
+        artist = full_status[1].strip(', ')
+        track = full_status[2].strip(', ')
+
+        # fudge the data
+        info = {
+            'xesam:artist': [artist],
+            'xesam:title': track,
+        }
     else:
         # Hack: tmux does weird shit with this, so figure out what the actual session bus is
         addr = subprocess.check_output("/home/sduncan/bin/dbus_address", shell=True).strip()
@@ -50,51 +73,59 @@ def get_current_track():
         iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
         info = iface.Get('org.mpris.MediaPlayer2.Player', 'Metadata')
 
-        if info:
-            artist = info['xesam:artist'][0]
-            title = info['xesam:title']
-
         playback_status = iface.Get('org.mpris.MediaPlayer2.Player', 'PlaybackStatus')
 
     if 'playing' in playback_status.lower():
-        prefix = u'♫  '
-        color = 'white'
+        prefix = '♫ '
+        color = 'default'
     else:
-        prefix = u'⏸  '
-        color = 'yellow'
+        prefix = '⏸  '
+        color = 'orange'
 
     if not info:
         return ''
     else:
         maxlen = 50
+        artist = info['xesam:artist'][0]
+        title = info['xesam:title']
 
-        info = '{prefix}{artist} - {title}'.format(
-            prefix=prefix,
-            artist=artist,
-            title=title,
-        )
+        info = f'{prefix}{artist} - {title}'
 
         if len(info) > maxlen:
             info = info[:maxlen-3] + '...'
 
-        return '#[fg={},bg=black]{}#[fg=white,bg=black]'.format(color, info)
+        return f'#[fg={color}]{info}#[fg=default]'
 
 
 def get_current_state(battery):
     state = ''
     pct = 100.0
 
-    output = subprocess.check_output(
-        'upower -i {} | grep -E "state|percentage"'.format(battery.decode('utf8')), shell=True
-    ).strip().decode('utf8').split('\n')
+    if DARWIN:
+        batt = subprocess.check_output('pmset -g batt | egrep "%"', shell=True).strip().decode('utf8').split('\n')[-1]
+        parts = [s.strip() for s in batt.split('\t') if s.strip()][1:]
 
-    for line in map(methodcaller('strip'), output):
-        name, _, data = line.rpartition(' ')
+        parts = [
+            s.strip()
+            for item in parts
+            for s in item.split(';')
+            if s.strip()
+        ]
 
-        if 'state' in name:
-            state = data
-        elif 'percentage' in name:
-            pct = float(data.rstrip('%'))
+        pct = float(parts[0].rstrip('%'))
+        state = parts[1]
+    else:
+        output = subprocess.check_output(
+            'upower -i {} | grep -E "state|percentage"'.format(battery.decode('utf8')), shell=True
+        ).strip().decode('utf8').split('\n')
+
+        for line in map(methodcaller('strip'), output):
+            name, _, data = line.rpartition(' ')
+
+            if 'state' in name:
+                state = data
+            elif 'percentage' in name:
+                pct = float(data.rstrip('%'))
 
     return state, pct
 
@@ -109,26 +140,39 @@ def as_hearts(percent, factor=10):
     full_hearts = heart * int(num_full)
     empty_hearts = heart * int(num_empty)
 
-    return '#[fg=red,bg=black]{}#[fg=white,bg=black]{}'.format(full_hearts, empty_hearts)
+    return f'#[fg=red]{full_hearts}#[fg=default]{empty_hearts}'
 
 
 def get_memory():
+    used = 0
     total = None
-    free = None
-    buffers = None
-    cached = None
 
-    if is_mac:
-        total = float(subprocess.check_output(['sysctl', 'hw.memsize']).strip().decode().split(' ')[-1])
+    if DARWIN:
+        total = float(subprocess.check_output(['sysctl', '-n', 'hw.memsize']).strip())
 
-        used = 0
-        procmems = subprocess.check_output(['ps', '-caxm', '-orss']).strip().decode().split('\n')[1:]
-        for mem in procmems:
-            used += float(mem)
+        vm = subprocess.check_output(['vm_stat']).strip().decode().split('\n')
+
+        # make into a dict
+        for item in vm:
+            key, value = item.strip().split(':')
+            key = key.lower()
+            value = value.strip().rstrip('.')
+
+            if key == 'pages free':
+                # cached
+                used += float(value) * 4096
+            elif key == 'pages active':
+                # inuse
+                used += float(value) * 4096
 
         total /= 1024.0 ** 3
-        used /= 1024.0 ** 2  # these report in KB
+        used /= 1024.0 ** 3
     else:
+        total = None
+        free = None
+        buffers = None
+        cached = None
+
         with open('/proc/meminfo', 'r') as f:
             for line in f:
                 if line.startswith('MemTotal:'):
@@ -149,104 +193,124 @@ def get_memory():
 
     pct = (used / total) * 100.0
 
+    cstart, cend = '', ''
+
     if pct < 85:
-        color = '#[fg=white,bg=black]'
+        pass
     elif pct < 95:
-        color = '#[fg=yellow,bg=black]'
+        cstart = '#[fg=orange]'
+        cend = '#[fg=default]'
     else:
-        color = '#[fg=red,bg=black]'
+        cstart = '#[fg=red]'
+        cend = '#[fg=default]'
 
-    kwargs = {
-        'color': color,
-        'reset': '#[fg=white,bg=black]',
-        'used': '{:.1f}'.format(used),
-        'total': '{:.1f}'.format(total),
-    }
-
-    return '{color}M:{used}GB{reset}'.format(**kwargs)
+    return f'{cstart}M:{used:.1f}GB{cend}'
 
 
 def get_battery(factor=10):
     status = []
 
-    if is_mac:
-        lines = subprocess.check_output(['pmset', '-g', 'batt']).strip().decode().split('\n')
-        name = 'B0'
+    try:
+        output = subprocess.check_output(b'upower -e 2>/dev/null | grep BAT', shell=True).strip().split(b'\n')
+    except Exception:
+        output = [b'']
 
-        if 'AC Power' in lines[0]:
-            state = 'charging'
-        else:
-            state = 'discharging'
+    batteries = [s.strip() for s in output]
 
-        pct = float(re.findall(r'(\d+)%;', lines[1])[0])
+    for battery in batteries:
+        _, _, name = battery.decode('utf8').rpartition('_')
+        name = name.replace('BAT', 'B')
 
-        if pct > 25:
-            color = '#[fg=white,bg=black]'
-        elif pct > 15:
-            color = '#[fg=yellow,bg=black]'
-        else:
-            color = '#[fg=red,bg=black]'
-
-        if state == 'charging':
-            color = '#[fg=green,bg=black]+'
-
-        status.append((name, as_hearts(pct, factor=factor), color))
-    else:
         try:
-            output = subprocess.check_output(b'upower -e | grep BAT', shell=True).strip().split(b'\n')
+            state, pct = get_current_state(battery)
         except Exception:
-            output = [b'B0']
+            state = ''
+            pct = 100
 
-        batteries = [s.strip() for s in output]
+        status.append((name, as_hearts(pct, factor=factor)))
 
-        for battery in batteries:
-            _, _, name = battery.decode('utf8').rpartition('_')
-            name = name.replace('BAT', 'B')
+    # f'{pct:.0f}% {name}{hearts}'.strip()
 
-            try:
-                state, pct = get_current_state(battery)
-            except Exception:
-                state = ''
-                pct = 100
-
-            if pct > 25:
-                color = '#[fg=white,bg=black]'
-            elif pct > 15:
-                color = '#[fg=yellow,bg=black]'
-            else:
-                color = '#[fg=red,bg=black]'
-
-            if state == 'charging':
-                color = '#[fg=green,bg=black]+'
-
-            status.append((name, as_hearts(pct, factor=factor), color))
-
-    return ' '.join([
-        '{}{}:{}#[fg=white,bg=black]'.format(c, b, h) for b, h, c in sorted(status, key=itemgetter(0))
-    ])
+    return ' '.join(
+        f'{name}{hearts}'
+        for name, hearts in sorted(status, key=itemgetter(0))
+    )
 
 
 def get_loadavg():
-    if is_mac:
-        loadavg = float(sysctl('vm.loadavg').split(' ')[-4])
+    if DARWIN:
+        loadstr = subprocess.check_output(b'sysctl -n vm.loadavg', shell=True).split(b' ')[1]
     else:
         with open('/proc/loadavg', 'r') as f:
-            loadavg = float(f.readline().strip().split(' ')[0])
+            loadstr = f.readline().strip().split(' ')[0]
 
-    if loadavg < 2.5:
-        color = '#[fg=white,bg=black]'
-    elif loadavg < 5:
-        color = '#[fg=yellow,bg=black]'
+    loadavg = float(loadstr)
+
+    # color wraps
+    cstart, cend = '', ''
+
+    if loadavg < 5:
+        pass
+    elif loadavg < 10:
+        cstart = '#[fg=orange]'
+        cend = '#[fg=default]'
     else:
-        color = '#[fg=red,bg=black]'
+        cstart = '#[fg=red]'
+        cend = '#[fg=default]'
 
-    kwargs = {
-        'color': color,
-        'reset': '#[fg=white,bg=black]',
-        'load': '{:.2f}'.format(loadavg),
-    }
+    return f'{cstart}L:{loadavg:.2f}{cend}'
 
-    return '{color}L:{load}{reset}'.format(**kwargs)
+
+def get_speedctl():
+    try:
+        context = subprocess.check_output('speedctl config current-context 2>/dev/null', shell=True)
+    except Exception:
+        context = b'NO-CONTEXT'
+
+    context = context.strip().decode('utf8')
+
+    cstart, cend = '', ''
+
+    if context in ('dev', 'local') or context.startswith('dev-'):
+        pass
+    elif 'staging' == context:
+        cstart = '#[fg=orange]'
+        cend = '#[fg=default]'
+    elif 'prod' == context or context.startswith('cust-'):
+        cstart = '#[fg=red]'
+        cend = '#[fg=default]'
+    else:
+        # show magenta for unknown
+        cstart = '#[fg=magenta]'
+        cend = '#[fg=default]'
+
+    return f'{cstart}SC:{context}{cend}'
+
+
+def get_k8s():
+    try:
+        context = subprocess.check_output('kubectl config current-context 2>/dev/null', shell=True)
+        namespace = subprocess.check_output("kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null", shell=True)
+    except Exception:
+        context = b'NO-CONTEXT'
+        namespace = b'NO-NS'
+
+    context = context.strip().decode('utf8')
+    namespace = namespace.strip().decode('utf8') or 'default'
+
+    cstart, cend = '', ''
+
+    if 'prod' == context:
+        cstart = '#[fg=red]'
+        cend = '#[fg=default]'
+    elif 'staging' == context:
+        cstart = '#[fg=orange]'
+        cend = '#[fg=default]'
+    elif 'dev' == context:
+        cstart = '#[fg=blue]'
+        cend = '#[fg=default]'
+
+    return f'{cstart}K8S:{context}:{namespace}{cend}'
 
 
 def main():
@@ -255,26 +319,23 @@ def main():
     lines = []
 
     try:
-        lines.append(get_current_track())
+        # lines.append(get_current_track())
+        pass
     except:
         # Probably no track...
-        raise
+        pass
 
-    lines.append(get_loadavg())
-    lines.append(get_memory())
-    lines.append(get_battery(factor=factor))
+    lines.extend([
+        get_loadavg(),
+        get_memory(),
+        get_volume(),
+        get_k8s(),
+        get_speedctl(),
+        get_battery(factor=factor),
+    ])
 
-    data = []
-    for line in lines:
-        if not line:
-            continue
+    print('#[fg=colour245 push-default]' + f' {DIVIDER} '.join(filter(bool, lines)) + ' ' + '#[fg pop-default]')
 
-        if hasattr(line, 'decode'):
-            line = line.decode()
-
-        data.append(line)
-
-    print(' | '.join(data))
 
 
 if __name__ == '__main__':

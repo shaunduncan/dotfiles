@@ -1,0 +1,6 @@
+#!/bin/sh
+# linux utility to "correct" the display attributes and position of an external monitor when connected to my
+# t440s thinkpad
+xrandr --newmode "1920x1080_60.00"  173.00  1920 2048 2248 2576  1080 1083 1088 1120 -hsync +vsync
+xrandr --addmode DP2 1920x1080_60.00
+xrandr --output DP2 --mode 1920x1080_60.00

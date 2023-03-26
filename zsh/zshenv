@@ -17,7 +17,6 @@ cdpath=(~/work/repos ~/work/deploy ~/work/wip ~/junk)
 autoload -Uz inspath
 autoload -Uz sysinfo && sysinfo
 
-
 # where homebrew drops things
 inspath /usr/local/bin
 
@@ -89,19 +88,3 @@ fi
 
 # load secrets if they exist
 [[ -f $HOME/.secrets.env ]] && source $HOME/.secrets.env
-
-# XXX: when using minikube as the machine's docker engine, the documentation suggests just plainly
-# adding `eval "$(minikube docker-env)` to zshrc. in my experience this was taking about 300ms on
-# average to actually complete and all it would do is export the env vars below. to hasten things,
-# just assume these are always correct and export them statically. this may not always work.
-export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.64.4:2376"
-export DOCKER_CERT_PATH="$HOME/.minikube/certs"
-export MINIKUBE_ACTIVE_DOCKERD="minikube"
-export USE_GKE_GCLOUD_AUTH_PROVIDER="True"
-
-# android
-export ANDROID_HOME=~/Library/Android/sdk
-export PATH=${PATH}:${ANDROID_HOME}/platform-tools
-export PATH=${PATH}:${ANDROID_HOME}/build-tools/33.0.1
-export PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin

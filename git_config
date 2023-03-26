@@ -1,0 +1,250 @@
+; vi:ft=gitconfig
+[core]
+    ; hooksPath = ~/.config/git/hook
+    ; use less by default, use the pager section for specific commands
+    ; pager = less -FRSX --shift 1 --incsearch
+    pager = delta
+    abbrev = 8
+[user]
+    name = Shaun Duncan
+    email = shaun.duncan@gmail.com
+[advice]
+    ; which things do we not need to see hints for
+    statusHints = false
+[blame]
+    date = format:%Y-%m-%d %H:%M
+    coloring = repeatedLines
+[branch]
+    autoSetupMerge = always
+    ; if you want git pull to rebase and not merge
+    ; autoSetupRebase = always
+    ; sort = ...whatever?
+[checkout]
+    defaultRemote = origin
+    guess = true
+    ; use the number of cores
+    workers = -1
+[color]
+    ui = auto
+[color "blame"]
+    repeatedLines = "#555555"
+[color "branch"]
+    current = reverse green
+    remote = magenta
+    plain = white
+    local = white
+[color "decorate"]
+    HEAD = red
+    branch = red
+    remoteBranch = dim white
+    tag = magenta
+[color "status"]
+    added = green
+    updated = green
+    changed = yellow
+    untracked = blue
+    ; localBranch = green
+    ; remoteBranch = red
+    unmerged = reverse blue
+[column]
+    ; turn on column output with equal sized columns
+    ; customize these for sections: branch, clean, status, tag
+    ui = always,column,nodense
+[commit]
+    ; template =
+[diff]
+    algorithm = histogram
+    tool = vimdiff
+[difftool]
+    prompt = false
+[fetch]
+    prune = true
+[format]
+    pretty = standard
+[instaweb]
+    local = true
+    port = 8080
+[interactive]
+    ; use delta for "git add -p"
+    diffFilter = delta --color-only
+    ; enable if you want to avoid pressing enter for thing like "git add -p"
+    ; singleKey = true
+[log]
+    abbrevCommit = true
+    date = format:%Y-%m-%d %H:%M
+    ; excludeDecoration = remotes
+[merge]
+    conflictStyle = zdiff3
+    suppressDest = true
+    tool = vimdiff
+[pager]
+    l = less
+    tablelog = less
+[pretty]
+    ; maybe add %<(25,trunc) to %ae, dunno about commit message, maybe wrap?
+    ; standard  = format:%C(reverse yellow) %h %C(noreverse) %C(green)%an %C(blue)%ar%C(magenta)%d%C(auto)%+s
+    ; figure this one out: %C(magenta)⎇ %S ... you need --source --branches?
+    standard  = format:%C(yellow)%H %C(blue)%ad %C(green)%an %C(red)%D%C(auto)%+B%n
+    quick     = format:%C(yellow)%h %C(blue)%ad %C(green)%an %C(auto)%s%C(red)% D%C(auto)
+
+    ; table parseable format, each cell separated by 0x1f (ASCII US: unit separator)
+    table = format:\
+%C(yellow)%h\
+%C(auto)%x1f\
+%C(blue)%ad\
+%C(auto)%x1f\
+%C(green)%an\
+%C(auto)%x1f\
+%<(80,trunc)%s\
+%C(auto)%x1f\
+%C(red)%D\
+%C(auto)%x1f
+[pull]
+    ff = only
+[push]
+	default = current
+[remote]
+	pushDefault = origin
+[status]
+    branch = true
+    showStash = true
+    showUntrackedFiles = all
+    showIncludeUntracked = true
+[tag]
+    ; sort tags as if they were version numbers
+    sort = v:refname
+
+[alias]
+    ; useful shorthand variants
+    wt = worktree
+
+    ; the opposite of git add
+    unadd = restore --staged
+
+    ; fetch+pull
+    up = "!git fetch && git pull"
+
+    ; checkout or create
+    co = "!f() { git checkout $1 || git checkout -b $1; }; f"
+
+    ; vdiff: open diff files in separate tabs with fugitive Gdiff applied
+    vdiff = "!f() { vim -p $(git diff --name-only $@) -c ':tabdo Gdiff'; }; f"
+
+    ; xlog xdiff: side-by-side diff
+    xdiff = -c delta.side-by-side=true diff
+    xlog = -c delta.side-by-side=true log -p
+
+    ; TO MAKE
+    ; show tags in version order with: list of commits | diff stats | diff
+    ; show single tag like above
+
+    ; b = branch --format='%(refname:strip=-2) %(objecttype) %(objectname:short) %(upstream:strip=1) %(upstream:track) %(push:strip=1)'
+    ; HEAD
+    ; refname:short
+    ; objecttype (blob, tree, commit, or tag)
+    ; objectname:short (abbrev commit)
+    ; upstream:short (upstream ref)
+    ; upstream:track,nobracket (or trackshort)
+    ; upstream:remotename (e.g. origin)
+    ; upstream:remoteref
+    ; %(align:40,left)..%(end) (width,position)
+    ; %(if)..%(then)..%(else)..%(end)
+    ; %(if:equals=*)%(HEAD)%(then)BEST%(end)
+    ; [committer|author|tagger][name|email|date] (:localpart for email)
+    ; %(color:yellow)%(objectname:short)%(color:reset)
+    ; contents:subject
+    ;
+    ; sort='version:refname'
+    ;
+    ; git for-each-ref --format="%(refname)%(if)%(taggername)%(then) Authored by: %(taggername)%(end)"
+
+    ; show the log as a graph, add --all to have a global view of all refs
+    ; potentially use --date-order
+    g = log --graph --decorate --decorate-refs=tags --all --single-worktree --topo-order --pretty=quick
+    gw = log --graph --decorate --decorate-refs=tags --exclude=refs/notes/* --all --single-worktree --topo-order --pretty=standard
+    graph = g
+    graphw = gw
+
+    ; show the log in a condensed format, showing diff stats and no decorate (we don't need it)
+    statlog = log --stat=120 --pretty=quick --decorate-refs-exclude=*
+    lstat = statlog
+
+    ; idea: for-each-ref to find the branch name to group by?
+
+    ; quick logs: show online output in tabular form
+    l = "!f() { git log --pretty=table --decorate --decorate-refs=tags $@ | python3 -m tabulate -s '\\x1f' -f plain; }; f"
+    l2 = "!f() { git log --pretty=table --decorate --decorate-refs=tags $@; }; f"
+
+    ; tabular log output. there are some quirks with it for wrapping long commit messages, but i guess it's ok?
+    tablelog = "!f() { git log --pretty=table --decorate --decorate-refs=tags $@ | python3 -m tabulate -s '\\x1f' -f simple_outline; }; f"
+    ltable = tablelog
+
+    ; other useful things
+    ; --name-only: only show commits that edit files containing the given string
+
+    ; abbreviated status
+    s = status -s
+
+    ; branch pruning: delete inactive branches that have already been merged
+    bprune = "!f() { git branch --no-column --no-color --merged origin/master | egrep -v '(^\\* master|^\\+ )' | xargs git branch -d; }; f"
+
+; prefer ssh clones
+[url "ssh://git@gitlab.com/"]
+    insteadOf = https://gitlab.com/
+
+; github deprecated git:// urls
+[url "ssh://git@github.com/"]
+    insteadOf = git://github.com/
+
+; configuration options for delta as a pager
+[delta]
+    line-numbers = true
+    side-by-side = false
+    navigate = true
+    syntax-theme = none
+
+    dark = true
+    commit-decoration-style = none
+    file-style = omit
+    file-decoration-style = none
+
+    file-added-label = [+]
+    file-copied-label = [C]
+    file-modified-label = [M]
+    file-removed-label = [-]
+    file-renamed-label = [R]
+
+    hunk-header-decoration-style = none
+    hunk-header-file-style = yellow
+    hunk-header-line-number-style = bold "#03a4ff"
+    hunk-header-style = file line-number syntax
+
+    line-numbers = true
+    line-numbers-left-style = black
+    line-numbers-minus-style = red
+    line-numbers-plus-style = green
+    line-numbers-right-style = black
+    line-numbers-zero-style = "#999999"
+
+    git-moved-from-style = reverse purple
+
+    minus-emph-style = reverse red
+    minus-style = red
+    plus-emph-style = reverse green
+    plus-style = green
+
+    zero-style = dim syntax
+
+    ; original theme styling
+    ; file-style = yellow
+    ; file-decoration-style = yellow ul
+    ; hunk-header-file-style = "#999999"
+    ; line-numbers-minus-style = "#B10036"
+    ; line-numbers-plus-style = "#03a4ff"
+    ; minus-emph-style = syntax bold "#780000"
+    ; minus-style = syntax "#400000"
+    ; plus-emph-style = syntax bold "#007800"
+    ; plus-style = syntax "#004000"
+
+    ; disable line wrapping
+    ; wrap-max-lines = 0

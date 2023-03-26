@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+sudo yabai --load-sa
+yabai -m signal --add event=dock_did_restart action="sudo yabai --load-sa"
+
+yabai -m config mouse_follows_focus     off
+yabai -m config focus_follows_mouse     off
+yabai -m config window_topmost          off
+yabai -m config split_ratio             0.50
+yabai -m config auto_balance            on
+yabai -m config window_shadow           off
+
+# layout - use float so that we can manage the layout ourselves via grid
+yabai -m config layout float
+
+# self managed grid layout: yabai -m window [WINDOW] --grid <rows>:<cols>:<start-x>:<start-y>:<width>:<height>
+
+# active window identification
+yabai -m config window_border               off
+yabai -m config window_border_width         2
+yabai -m config active_window_border_color  0xFF00FF00
+
+# yabai -m config debug_output on
+
+# come up with a way to track grid definitions and quickly resize items. use the signals here to deal with
+# updating a grid db?
+# yabai -m signal --add event=application_launched app=".*" action=/Users/sduncan/bin/yabai_launch_in_unfrozen

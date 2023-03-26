@@ -1,0 +1,10 @@
+Compression yes
+ForwardAgent yes
+ServerAliveInterval 20
+PreferredAuthentications publickey
+Include conf.d/*
+
+Host * !gitlab.com !github.com
+    ControlMaster auto
+    ControlPath ~/.ssh/socks/%r@%h:%p
+    ControlPersist 30m

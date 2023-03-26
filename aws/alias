@@ -1,0 +1,32 @@
+[toplevel]
+console =
+  !f() {
+    session_token=$(python3 << EOF 2>/dev/null
+        import boto3
+        import json
+        import sys
+        from urllib import parse
+
+        creds = boto3.Session(profile_name='${1}').get_credentials()
+
+        urlcreds = {
+            'sessionId': creds.access_key,
+            'sessionKey': creds.secret_key,
+            'sessionToken': creds.token,
+        }
+        print(parse.quote_plus(json.dumps(urlcreds)))
+    EOF)
+
+    if [ -z $session_token ]; then
+        echo "\033[38;5;9mSSO failure: you need to sign in again\033[0m"
+        return 1
+    fi
+
+    signin_token=$(curl -qs "https://signin.aws.amazon.com/federation?Action=getSigninToken&DurationSeconds=43200&Session=${session_token}" | jq -rc '.SigninToken')
+    target_url="https://signin.aws.amazon.com/federation?Action=login&Destination=https%3A%2F%2Fconsole.aws.amazon.com%2F&SigninToken=${signin_token}"
+
+    open "https://signin.aws.amazon.com/oauth?Action=logout"
+    osascript -e 'tell application "Firefox" to activate'
+    osascript -e 'tell application "System Events" to keystroke "w" using command down'
+    open "${target_url}"
+  }; f

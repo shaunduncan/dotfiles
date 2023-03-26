@@ -1,0 +1,4 @@
+#!/bin/bash
+# wrapper for "have you tried turning it off and on again" to force wifi to connect to a better AP
+nmcli conn down duncan
+nmcli conn up duncan

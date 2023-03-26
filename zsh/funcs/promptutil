@@ -25,6 +25,7 @@ typeset -gA ps_icons=(
 # global parameters set via precmd hooks
 typeset -g ps_dirpath_
 typeset -g ps_context_
+typeset -g ps_userinfo_
 typeset -g ps_error_
 
 # mode string mappings. keys should be a valid mode mapping or 'default'
@@ -63,7 +64,18 @@ __ps_dirpath() {
     local relpath=${$(git rev-parse --show-prefix)%/}
 
     # repo relative prompt: magenta(repo_name) cyan(relative_path)
-    ps_dirpath_="%F{magenta}<${origin:t}>%f %F{cyan}${relpath:-~}%f "
+    ps_dirpath_="%F{magenta}@${origin:t}:${relpath:-~}%f "
+  fi
+}
+# }}}
+
+# func: ps_userinfo: current user info, mainly for ssh connections {{{
+__ps_userinfo() {
+  # is this an ssh connection? if so, show the user and current hostname
+  if (( ${+SSH_CONNECTION} )); then
+    ps_userinfo_="%F{red}@%m%f "
+  else
+    ps_userinfo_=""
   fi
 }
 # }}}
@@ -164,6 +176,7 @@ autoload -Uz add-zsh-hook add-zle-hook-widget
 # precmd hooks
 add-zsh-hook -Uz precmd __ps_context
 add-zsh-hook -Uz precmd __ps_dirpath
+add-zsh-hook -Uz precmd __ps_userinfo
 add-zsh-hook -Uz precmd __ps_error
 
 # zle hooks

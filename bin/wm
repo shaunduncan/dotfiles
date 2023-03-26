@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+
+# wrapper utility to manage yabai window positions
+import json
+import os
+import shlex
+import subprocess
+import sqlite3
+import sys
+import tempfile
+
+from contextlib import closing
+
+
+db = None
+
+
+def prepare_db():
+    global db
+
+    db = sqlite3.connect(os.path.join(tempfile.gettempdir(), 'yabai.{}.db'.format(os.getuid())))
+
+    with closing(db.cursor()) as c:
+        c.execute('create table if not exists windows(id int not null primary key, grid text)')
+        db.commit()
+
+
+def get_window_data(id):
+    with closing(db.cursor()) as c:
+        c.execute('select * from windows where id=?', (id,))
+        return c.fetchone()
+
+
+def save_window_data(id, grid):
+    with closing(db.cursor()) as c:
+        c.execute('insert into windows(id, grid) values(?, ?) on conflict(id) do update set grid = ?', (id, grid, grid))
+    db.commit()
+
+
+def get_current_window():
+    return json.loads(subprocess.check_output("yabai -m query --windows | jq '.[] | select(.\"has-focus\" == true)'", shell=True))
+
+
+def set_layout(layout, id=None):
+    if id is None:
+        id = get_current_window()['id']
+
+    subprocess.check_call(shlex.split(f'yabai -m window --grid {layout}'))
+    save_window_data(id, layout)
+
+
+def pos(action):
+    current_window = get_current_window()
+    id, grid = get_window_data(current_window['id'])
+
+    rows, cols, x, y, w, h = map(int, grid.split(':'))
+
+    direction, delta = action
+
+    if delta == '+':
+        delta = 1
+    else:
+        delta = -1
+
+    if direction == 'x':
+        x = min(max(x + delta, 0), cols-1)
+    elif direction == 'y':
+        y = min(max(y + delta, 0), rows-1)
+    elif direction == 'w':
+        w = min(max(w + delta, 1), cols-x)
+    elif direction == 'h':
+        h = min(max(h + delta, 1), rows-y)
+
+    new_grid = f'{rows}:{cols}:{x}:{y}:{w}:{h}'
+    set_layout(new_grid, id=id)
+
+
+def size(action):
+    pass
+
+
+def grid_size(action):
+    pass
+
+
+def main(argv):
+    prepare_db()
+
+    action = argv[1]
+
+    if action == 's':
+        set_layout(argv[2])
+    elif action == 'sl':
+        set_layout('1:2:0:0:1:1')
+    elif action == 'sr':
+        set_layout('1:2:1:0:1:1')
+    elif action == 'sb':
+        set_layout('2:1:0:1:1:1')
+    elif action == 'st':
+        set_layout('2:1:0:0:1:1')
+    elif action[0] in ('w', 'h'):
+        pos(action)
+    elif action[0] in ('x', 'y'):
+        pos(action)
+    elif action[0] in ('gc', 'gr'):
+        grid_size(action)
+
+
+if __name__ == '__main__':
+    if sys.platform != 'darwin':
+        print('this utility is mac-only')
+        exit(1)
+
+    main(sys.argv)

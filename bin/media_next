@@ -1,2 +1,7 @@
-#!/bin/sh
-dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next
+#!/bin/bash
+set -x
+if [[ $(uname) == "Darwin" ]]; then
+    osascript -e 'tell application "Spotify" to next track'
+else
+    dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.Next
+fi

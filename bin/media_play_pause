@@ -1,2 +1,6 @@
-#!/bin/sh
-dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause
+#!/bin/bash
+if [[ $(uname) == "Darwin" ]]; then
+    osascript -e 'tell application "Spotify" to playpause'
+else
+    dbus-send --print-reply --dest=org.mpris.MediaPlayer2.spotify /org/mpris/MediaPlayer2 org.mpris.MediaPlayer2.Player.PlayPause
+fi

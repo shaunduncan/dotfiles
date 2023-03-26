@@ -2,19 +2,36 @@
 # cli utility to manage volume
 
 arg=$1
+step=5
 
-
-case $1 in
-up)
-    amixer sset Master 3%+
-    ;;
-down)
-    amixer sset Master 3%-
-    ;;
-toggle)
-    amixer sset Master toggle
-    ;;
-equialize)
-    amixer sset Master 25%
-    ;;
-esac
+if [[ $(uname) == "Darwin" ]]; then
+  case $1 in
+  up)
+      osascript -e "set volume output volume (output volume of (get volume settings) + ${step})"
+      ;;
+  down)
+      osascript -e "set volume output volume (output volume of (get volume settings) - ${step})"
+      ;;
+  toggle)
+      osascript ~/bin/voltoggle.scpt
+      ;;
+  equialize)
+      osascript -e "set volume output volume 25"
+      ;;
+  esac
+else
+  case $1 in
+  up)
+      amixer sset Master 3%+
+      ;;
+  down)
+      amixer sset Master 3%-
+      ;;
+  toggle)
+      amixer sset Master toggle
+      ;;
+  equialize)
+      amixer sset Master 25%
+      ;;
+  esac
+fi

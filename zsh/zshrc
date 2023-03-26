@@ -1,164 +1,462 @@
-# vi:fdm=marker:ft=zsh
-# zmodload zsh/zprof
+# vi:fdm=marker
 
-# VARS {{{
-export ZSH=$HOME/.zsh
+# notes to try
+# https://zsh.sourceforge.io/Guide
+# `print -z` puts args onto a stack you can use ths to prefill commands
+# `hash -d name=/path/to/thing` for showing abbreviated names
+#   hash -d speedscale=~/work/repos/speedscale ---> ~speedscale
+# `fignore`: array of file suffixes to ignore for completion
+# bindkey alt+<one of the vim keys> to handle doing pushd/popd
+# https://github.com/ohmyzsh/ohmyzsh/tree/master/plugins/history
+#
+# TODO: setopt these for your fpath functions to validate them: warn_create_global warn_nested_var
+#
+# https://raw.githubusercontent.com/kyanagi/faster-vcs-info/master/VCS_INFO_detect_git
 
-platform=$(uname -s | tr '[:upper:]' '[:lower:]')
-fpath=( ${ZSH}/funcs "${fpath[@]}" )
+# CREDIT: fredo
+# Create a directory and then cd into it
+# function take() {
+#   mkdir -p $@ && cd ${@:$#}
+# }
+
+# profile zsh full interactive startup if requested
+if (( ${+ZPROFILE} )); then
+  zmodload zsh/zprof
+fi
+
+# ENV CONFIG {{{
+
+# history
+export HISTFILE=$HOME/.zsh_history
+export HISTSIZE=10000
+export SAVEHIST=1000000
+export HISTORY_IGNORE="nohist *"
+
+# allow relative build dir paths
+inspath ./build
+
 # }}}
 
-# ZSH OPTS {{{
-# multiple redirects become implicit tee/cat
-setopt multios
+# OPTIONS {{{
 
-# .zsh_history
-setopt share_history
+# misc behaviors
+setopt no_beep
+setopt no_rm_star_silent  # confirm `rm foo/*` is what you want to do
+setopt multios            # multiple redirects become implicit tee/cat
+setopt extended_glob
+setopt no_all_export
+
+# history
 setopt append_history
-setopt extended_history
-setopt hist_find_no_dups
-setopt hist_ignore_all_dups
+setopt extended_history         # record the command and timing info
+setopt inc_append_history_time  # write after each command completes (for timing info)
+setopt share_history            # shared history for when using tmux
+setopt hist_expire_dups_first   # get rid of duplicates first when trimming
+setopt hist_fcntl_lock          # use fcntl for file locking when possible
+setopt hist_find_no_dups        # ignore duplicates in line editor
+setopt hist_ignore_all_dups     # delete the older entry if the new one duplicates
+setopt hist_ignore_space        # ignore space prefixed lines
+setopt hist_no_store            # don't add `history` commands
+setopt hist_verify              # history expansion without executing
+setopt no_hist_beep             # no beeps
 
-# tab completion uses menu format
-setopt auto_menu
+# behavior on redirection: noclobber and require >! or >| for non empty files
+setopt no_clobber
+setopt clobber_empty
+setopt append_create
 
-# tab completion does more fuzzy matching rather than just suffix matching
-setopt complete_in_word
+# jobs: check for running jobs on exit and attempt SIGHUP terminations
+setopt check_jobs hup
 
-# move cursor to end of word after completion
+# completion opts
+setopt auto_menu             # use menu format
+setopt auto_remove_slash     # remove trailing slash for completed dirs
+setopt complete_in_word      # do more fuzzy matching instead of suffix only
+setopt no_complete_aliases   # treat aliases like their underlying commands
+setopt list_types            # extra hints for types (like ls -F)
 setopt always_to_end
 setopt glob_complete
 
-# disable error message if no match
-setopt nonomatch
+# don't make spelling corrections
+setopt no_correct
+setopt no_correct_all
 
-# movement behavior
+# disable error message if no match
+setopt no_nomatch
+
+# movement behavior: pushd and lazy cd
+setopt auto_cd
+setopt cd_silent
 setopt auto_pushd
 setopt pushd_ignore_dups
 setopt pushd_silent
 
-unsetopt correctall
-setopt prompt_subst
-setopt auto_remove_slash
+# prompt
+setopt prompt_bang     # support ! expanded to current history num
+setopt prompt_percent  # support % expansion
+setopt prompt_subst    # support parameter expansion
+
+# mode def
+setopt vi no_emacs no_dvorak
+
 #}}}
 
-# PLUGINS {{{
-autoload -U colors && colors
-autoload -Uz vcs_info
-autoload -Uz ${ZSH}/funcs/*
+# MODULES {{{
+
+# term modules for working more easily with the terminal
+zmodload zsh/termcap
+zmodload zsh/terminfo
+
+# z{get,set,del,list}attr <filename> to work with file xattr
+zmodload zsh/attr
+
+# load the stat module but don't clobber the system stat command
+zmodload -F zsh/stat b:zstat
+
+# possible with vi-mode customization
+# zsh/deltochar for functions delete-to-char and zap-to-char
+
+# possible for curses-based script tooling
+# zsh/curses
+
+# time management utilities
+# zsh/sched and zsh/datetime (with calendar system)
+
 # }}}
 
-# COMPLETION {{{
-autoload bashcompinit && bashcompinit
+# PLUGINS: load me before functions {{{
+zvm_config() {
+  ZVM_INIT_MODE=sourcing
+  ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+  ZVM_ESCAPE_KEYTIMEOUT=0.01
+  ZVM_NORMAL_MODE_CURSOR=$ZVM_CURSOR_BLINKING_UNDERLINE
+  ZVM_INSERT_MODE_CURSOR=$ZVM_CURSOR_BLINKING_BEAM
+}
+# source $ZSH/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh
+# }}}
+
+# FUNCTIONS {{{
+
+# my custom functions {{{
+autoload -Uz inspath  # append/prepend to $path
+autoload -Uz pushd    # wrap pushd to use MRU style dirlist
+autoload -Uz source   # wrap source to override `source ~/.zshrc`
+autoload -Uz mr       # tools for working with `glab mr`
+autoload -Uz workon   # utility to manage git worktrees
+
+# load sysinfo data
+autoload -Uz sysinfo && sysinfo
+
+# initialize lazyload wrappers for expensive bootstrapping
+autoload -Uz lazyload
+lazyload nvm
+
+# load my function junk drawer
+autoload -Uz toolbelt && toolbelt
+
+# load my prompt creation utilities
+autoload -Uz promptutil && promptutil
+# }}}
+
+# colors and color mappings
+autoload -Uz colors && colors
+
+# working with hook functions
+autoload -Uz add-zsh-hook add-zle-hook-widget
+
+# load compinit and bash compatibility
+autoload -Uz bashcompinit && bashcompinit
 autoload -Uz compinit
 
-COMPLETION_WAITING_DOTS="false"
+# file utils: load the z-variants to support better globbing so you can do things like:
+# zmv '(*).txt' '$1.md'
+autoload -Uz zmv
 
-# use cache
-zstyle ':completion:*' use-cache on
+# to make repeated zstyle easier to read
+autoload -Uz zstyle+
 
-# use rehash to handle new installs and use menu selection
+# use zsh run-help so vim `K` help actions Do The Right Thing(tm)
+unalias run-help
+autoload -Uz run-help
+
+# }}}
+
+# FIXME: is this ok?
+# inspath /usr/local/opt/sqlite/bin
+
+# COMPLETION {{{
+
+# NOTE: for reference, the zstyle format is
+# :completion:<func>:<completer>:<command>:<argument>:<tag>
+
+# TODO zstyle
+# `urls` suggest completion for git commands
+# completion for sso
+
+# hack: so we can have comments for multi-line commands
+local c=''
+
+# common config
+# _expand (offer suggestion for what would be expanded)
+# _extensions (summarize extensions if you do `*.<TAB>`
+# _match (with match-original)
+zstyle+ ':completion:*' auto-description '%F{red}[%d]%f' \
+  + '' completer _ignored _complete \
+  + '' menu auto select \
+  + '' use-cache true \
+  + '' use-compctl false \
+  + '' users {sduncan,root} \
+  # end
+  # + '' cache-path $ZSH/cache \
+
+# TODO: figure out a way to keep this and LSCOLORS in sync
+local zls_colors=(
+  "di=${color[blue]}"
+  "ln=${color[magenta]}"
+  "ex=${color[red]}"
+  "so=${color[green]}"
+  "bd=${color[fg-white]};${color[bg-blue]}"
+  "cd=${color[yellow]}"
+  "pi=${color[yellow]}"
+  "su=${color[fg-white]};${color[bg-red]}"
+  "sg=${color[fg-black]};${color[bg-cyan]}"
+  "tw=${color[fg-black]};${color[bg-green]}"
+  "ow=${color[fg-black]};${color[bg-yellow]}"
+  "st=${color[fg-white]};${color[bg-blue]}"
+  "or=${color[red]}"
+)
+
+zstyle ':completion:*' list-colors ${(j.:.)zls_colors}
+
+# FIXME: <CR> for a command with options should execute the command
+unset zls_colors
+
+# this highlights the matched part
+highlights='${PREFIX:+=(#bi)($PREFIX:t)(?)*==$color[blue]=00}':${(s.:.)LS_COLORS}}
+# zstyle -e ':completion:*' list-colors 'reply=( "'$highlights'" )'
+
+zstyle ':completion:*:*:ln:*' verbose true
+
+zstyle ':completion:*:*:ping:*' extra-verbose true
+zstyle ':completion:*:*:ping:*' expand 'suffix'
+zstyle ':completion:*:*:ping:*' hosts
+
+# match spec: simple, then case-insensitive, then outward expansion left/right
+#
+# note: the left/right expansion makes it so i can do things like `vim .txt<TAB>` and have it
+# complete all .txt files
+zstyle ':completion:*' matcher-list '' 'm:{a-zA-Z}={A-Za-z}' 'l:|=* r:|=*'
+
+# auto rehash external commands. the docs say there is a speed hit but only for dirs on the path
+# have slow file access
 zstyle ':completion:*' rehash true
-zstyle ':completion:*' menu select
 
-# case-insensitive matching
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}' 'r:|[._-]=* r:|=*' 'l:|=* r:|=*'
-zstyle ':completion:*' list-colors ''
+zstyle ':completion:*:*:*:*:descriptions' format '%F{cyan}[%d]%f'
 
-zstyle ':completion:*:*:make:*' tag-order 'targets'
+# TODO: verbose on/off adds descriptions to each option in the menu
+# TODO: ag <term> <cdpath-dir> doesn't work
+zstyle ':completion:*:*:docker:*' verbose true
+# zstyle ':completion:*:*:docker:*' tag-order commands arguments
+
+# zstyle ':completion:*:*:brew:*' menu select=long
+# zstyle ':completion:*:*:docker:*' option-stacking yes
+# zstyle ':completion:*' users
+# zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
+# zstyle ':completion:*' group-name ''
+# zstyle ':completion:*' format '>>>>> %d'
+
+# makefiles should show the available targets
+zstyle ':completion:*:*:make:*' tag-order targets
+
 zstyle ':completion:*:*:kill:*:processes' list-colors '=(#b) #([0-9]#) ([0-9a-z-]#)*=01;34=0=01'
-zstyle ':completion:*:*:*:*:processes' command "ps -u `whoami` -o pid,user,comm -w -w"
+zstyle ':completion:*:*:*:*:processes' command "ps -u ${USERNAME} -o pid,user,comm -w -w"
 
 # disable named-directories autocompletion
-zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+# zstyle ':completion:*:cd:*' tag-order local-directories directory-stack path-directories
+zstyle ':completion:*:cd:*' tag-order directory-stack local-directories path-directories
 
-zstyle ':completion:*' completer _complete _match _approximate
-zstyle ':completion:*:functions' ignored-patterns '_*'
-zstyle ':completion:*:match:*' original only
-zstyle ':completion:*:approximate:*' max-errors 1 numeric
-zstyle -e ':completion:*:approximate:*'  max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3))numeric)'
+# zstyle ':completion:*' completer _complete _match _approximate
+# zstyle ':completion:*:functions' ignored-patterns '_*'
+# zstyle ':completion:*:match:*' original only
+# zstyle ':completion:*:approximate:*' max-errors 1 numeric
+# zstyle -e ':completion:*:approximate:*'  max-errors 'reply=($((($#PREFIX+$#SUFFIX)/3))numeric)'
 
-setopt EXTENDEDGLOB
-for dump in $HOME/.zcompdump(#qN.mh+24); do
-    compinit
-    zcompile "$dump"
-done
-unsetopt EXTENDEDGLOB
-compinit -C
-
-complete -C '/usr/local/bin/aws_completer' aws
+# recompile completions at most once per 24h
+if [[ -n $HOME/.zcompdump(#qN.mh+24) ]]; then
+  recompinit
+else
+  compinit -C
+fi
 # }}}
 
-# HISTORY {{{
-export HISTFILE=$HOME/.zsh_history
-export SAVEHIST=10000000
-export HISTSIZE=10000
-export HISTFILESIZE=
-export HISTTIMEFORMAT="[%F %T]"
-export HISTORY_IGNORE="nohist *"
+# KEY BINDINGS {{{
 
-# prevent space prefixed lines from being added
-setopt HIST_IGNORE_SPACE
+# start in viins mode, `bindkey -a` will start in vicmd
+bindkey -v
 
+# this bit below gets the HOME/END keys working consistently either outside or from within a tmux
+# session. i'm not sure why this is: it seemed to happen mostly using alacritty with xterm-256color
+# and combined with tmux using screen-256color. those two use different sequences for beginning/end
+# of line.
+#
+# https://forums.freebsd.org/threads/alacritty-home-end-not-working-on-command-line.79102/#post-496693
+#
+# tl;dr - we have to manually start top 'keyboard_transmit' mode (man 5 terminfo)
+if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
+  # just use anonymous functions
+  add-zle-hook-widget -Uz zle-line-init (){ echoti smkx }
+  add-zle-hook-widget -Uz zle-line-finish (){ echoti rmkx }
+fi
+
+# hist search: only do incremental searches for cmd mode
 bindkey '^R' history-incremental-search-backward
-bindkey '^F' history-incremental-search-forward
-# }}}
+bindkey -M isearch '^R' history-incremental-search-backward
+bindkey -M isearch '^F' history-incremental-search-forward
+bindkey -M isearch '^L' clear-screen
 
-# ENVIRONMENT {{{
-# homedir bin
-export PATH=$HOME/bin:$PATH
+# FIXME: <C-K> and <C-J> should do history up,down in normal mode
 
-export CLICOLOR=1
-export ARCHFLAGS='-arch i386 -arch x86_64'
+# alt left/right move by word
+bindkey '^[[1;3C' forward-word
+bindkey '^[[1;3D' backward-word
 
-export PAGER=less
-export LESS='-FRSX --shift 1 --incsearch'
+# home/end behavior with vi mode
+bindkey "${terminfo[khome]}" beginning-of-line
+bindkey "${terminfo[kend]}" end-of-line
 
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_DATA_HOME=$HOME/.local/share
+# DEL
+bindkey "${terminfo[kdch1]}" vi-delete-char
 
-# default editor
-export EDITOR="$(which vim)"
+# bindkey -M vicmd "${terminfo[khome]}" beginning-of-line
+# bindkey -M vicmd "${terminfo[kend]}" end-of-line
 
-# platform-specific things
-if [[ "${platform}" == "linux" ]]; then
-    # --user installed pip
-    export PATH=$PATH:$HOME/.local/bin
-
-    # This was some weird xfce thing with tmux panes
-    export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/$(pgrep -U $(whoami) xfce4-session)/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
-elif [[ "${platform}" == "darwin" ]]; then
-    # --user installed pip
-    export PATH=$HOME/Library/Python/3.9/bin:$PATH
-
-    # this makes the directories on mac blue and not cyan
-    export LSCOLORS=Exfxcxdxbxegedabagacad
-fi
-
-# load secrets
-if [ -f $HOME/.secrets.env ]; then
-    source $HOME/.secrets.env
-fi
 # }}}
 
 # ALIASES {{{
 
-# because i'm paranoid
-alias cp='cp -i'
-alias mv='mv -i'
+# paranoia mode
 alias rm='rm -i'
+alias mv='mv -i'
+alias cp='cp -i'
 
-# always enable color for grep
-alias grep='grep --color'
+# rsync is faster
+alias scp='rsync -avP'
 
-# handy aliases
-alias myshell="ps -p $$ | tail -1 | awk '{print $NF}'"
+# z variants (with paranoia mode)
+alias zmv='zmv -i'
+alias zcp='zmv -i -C'
+alias zln='zmv -i -L'
+
+# default behaviors
+alias ag='ag -U'             # don't ignore things from .gitignore
+alias history='fc -liD 0'    # full history with date/time info
+alias info='info --vi-keys'  # use better navigation
+alias ls='ls -F'             # extra hints for the outputs
+alias ping='ping -c 10'      # usually don't need it to go forever
+alias dirs='dirs -v'         # make the default output more useful
+
+# preferred command alternatives
+alias python='python3'
+alias vi='vim'
+
+# turn on output coloring
+alias grep='grep --color=auto'
+alias tree='tree -C'
+
+# default htop to initially show only my processes
+alias htop="htop -u $USERNAME --sort-key PERCENT_CPU"
+
+# shorthand
 alias l='ls -l'
 
-alias vi='vim'
-alias ping='ping -c 10'
+# platform specific tools
+if (( $__is_linux )); then
+  alias pbcopy='xclip -selection c'
+fi
 
-# kubectl: keep it short and sweet
+if (( $__is_macos )); then
+  # assuming this is available
+  alias updatedb='/usr/libexec/locate.updatedb'
+
+  # use the gnu variant
+  which gtar &>/dev/null || alias tar=gtar
+fi
+
+# tmux
+alias tmux='tmux -2 -u -f ~/.tmux.conf'
+alias attach='tmux attach-session'
+
+# curl
+alias curlh='curl -D /dev/stdout -o /dev/null -s -L'
+alias curlall='curl -D /dev/stdout -o /dev/stdout -s -L'
+
+# misc
+alias zprofile='ZPROFILE=1 zsh -i -c "zprof && exit"'
+alias zreload='print "reloading zshrc"; exec zsh'
+alias zr='zreload'
+
+# }}}
+
+# PROMPT {{{
+
+# vcs_info {{{
+
+# add vcs_info to the precmd hook. we don't need to explicitly autoload it because that will be
+# handled automatically by add-zsh-hook
+add-zsh-hook -Uz precmd vcs_info
+
+# git integration - see: https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#Configuration-3
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:*' check-for-changes false
+zstyle ':vcs_info:*' check-for-unstaged-changes false
+zstyle ':vcs_info:*' max-exports 1
+zstyle ':vcs_info:*' get-revision false
+zstyle ':vcs_info:*' get-unapplied false
+zstyle ':vcs_info:*' use-simple true
+zstyle ':vcs_info:*' use-quilt false
+
+# FIXME: try and configure this to whitelist directories
+# zstyle ':vcs_info:*' disable-patterns "${(b)HOME}"
+
+# formats: when not using actionformats
+# actionformats: rebase, merge, etc
+zstyle ':vcs_info:*' formats "%f%F{green}${ps_icons[branch]}%b%f "
+zstyle ':vcs_info:*' actionformats "%f%F{red}${ps_icons[branch]}%b[%a]%f "
+
+# }}}
+
+# prompts
+PS1='%F{yellow}%T%f ${ps_context_}${ps_userinfo_}${ps_dirpath_}${vcs_info_msg_0_}${ps_mode_}'
+# }}}
+
+# OTHER CONFIG {{{
+
+# golang {{{
+export GO111MODULE=on
+
+# NOTE: $GOROOT is specific to whatever is brew linked when the shell is started, but there's not
+# that much in the /bin dir anyway. GOPATH/bin is more important anyway, so just use that (it's
+# always ~/go/bin anyway
+inspath ${HOME}/go/bin
+
+# don't use gosumdb because you work with private repos
+noglob export GOPRIVATE='gitlab.com/speedscale/*'
+# }}}
+
+# direnv {{{
+# don't be noisy
+export DIRENV_LOG_FORMAT=
+# }}}
+
+# speedscale {{{
+export SPEEDCTL_HOME=/Users/sduncan/.speedscale
+inspath $SPEEDCTL_HOME
+# }}}
+
+# kubectl {{{
+compinit_command kubectl
+
+# shorthand
 alias k='kubectl'
 alias kns='kubectl config set-context --current --namespace'
 alias ka='k apply -f'
@@ -168,201 +466,139 @@ alias kl='k logs'
 alias kdesc='k describe'
 alias kx='k config use-context'
 
-# make the `k` alias also support kubectl completion
-compdef __start_kubectl k
-
-# ag: honor .ignore files, but not .gitignore
-alias ag='ag --skip-vcs-ignores'
-
-# brevity
-alias mk=minikube
-
-# handy to login to aws profiles
-alias sso='aws sso login --profile'
-
-# get full history instead of a limited set
-alias history='history 0'
-
-# linux-only
-if [[ "${platform}" == "linux" ]]; then
-    alias pbcopy='xclip -selection c'
-elif [[ "${platform}" == "darwin" ]]; then
-    alias updatedb=/usr/libexec/locate.updatedb
-fi
-
-# tmux
-alias tmux='tmux -u -f ~/.tmux.conf'
-alias attach='tmux attach-session'
-
-# curl utils
-alias curlh='curl -D /dev/stdout -o /dev/null -s -L'
-alias curlall='curl -D /dev/stdout -o /dev/stdout -s -L'
-
-# tree should always be color
-alias tree='tree -C'
-
-# laziness
-alias python=python3
-
-# }}}
-
-# MISC UTILS {{{
-if [[ "${platform}" == "linux" ]]; then
-    # shorthand for xdg-open
-    function open() {
-        thing=$1
-        if [ "$thing" = "" ]; then
-            thing="."
-        fi
-        xdg-open $thing &> /dev/null
-    }
-fi
-
-# wrapper to tag commands you don't want in zsh_hist
-function nohist() {
-    $@
-}
-
-# explicitly load direnv for the current directory
-function loadenv() {
-    direnv allow
-    eval "$(direnv export zsh)"
-}
-
-# wrapper for the glab cli to create a new merge request
-function mr() {
-    args=($@)
-
-    case "${args[1]}" in
-
-        new)
-            glab mr new --title "$(git log -1 --pretty=%s)" --description "$(cat ~/.config/merge_template.txt)" --web --push ${args[@]:1}
-            ;;
-
-        *)
-            glab mr $@
-            ;;
-    esac
-}
-# }}}
-
-# PROMPT CONFIG {{{
-
-# git integration - see: https://zsh.sourceforge.io/Doc/Release/User-Contributions.html#Configuration-3
-# formats: when not using actionformats
-# actionformats: rebase, merge, etc
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:*' check-for-changes false
-zstyle ':vcs_info:*' check-for-unstaged-changes false
-zstyle ':vcs_info:*' use-simple true
-
-zstyle ':vcs_info:*' formats "%f %F{green}⎇ %b%f"
-zstyle ':vcs_info:*' actionformats "%f %F{magenta}⎇ %b[%a]%f"
-
-precmd () {
-    vcs_info
-}
-
-# func: _dirpath: show abbreviated path {{{
-# Only show last 50 chars. Show '..' for the truncation
-function _dirpath() {
-    echo "$(perl -pl0 -e "s|^${HOME}|~|;s|([^/])[^/]*/|$""1/|g" <<<${PWD})"
-}
-# }}}
-
-# func: _prefix: show if in a shell via vim or with direnv active {{{
-function _prefix() {
-    # ●
-    # 🆅 🅴
-    # 𝚿  𝚺
-    # Ｖ Ｅ
-    #
-    s=''
-
-    # shell from vim?
-    if [ "$(env | grep VIM)" ]; then
-        s+='%K{red}%F{black}Ｖ%f%k'
-    fi
-
-    # direnv?
-    if [ "$(direnv status | egrep -i 'Loaded RC path')" ]; then
-        s+='%K{blue}%F{black}Ｅ%f%k'
-    fi
-
-    if [ "${s}" ]; then
-        s+=" "
-    fi
-
-    echo $s
-}
-# }}}
-
-COMMAND_MODE="%F{red}<<<%f"
-INSERT_MODE="%F{cyan}>>>%f"
-VI_MODE=$INSERT_MODE
-
-PROMPT='$(_prefix)%F{yellow}%T%f %F{cyan}$(_dirpath)%f${vcs_info_msg_0_} '
-# }}}
-
-# OTHER CONFIG {{{
-
-# golang {{{
-export GO111MODULE=on
-export PATH=$(go env GOROOT)/bin:$(go env GOPATH)/bin:$PATH
-
-# don't use gosumdb because you work with private repos
-export GOPRIVATE=gitlab.com/speedscale/*
-# }}}
-
-# direnv {{{
-# don't be noisy
-export DIRENV_LOG_FORMAT=
-# }}}
-
-# speedscale {{{
-export SPEEDCTL_HOME=${HOME}/.speedscale
-export PATH=$SPEEDCTL_HOME:$PATH
-# }}}
-
-# kubectl {{{
-# zsh completion
-source <(kubectl completion zsh)
-
 # kubectl krew
-export PATH=$PATH:$HOME/.krew/bin
+inspath $HOME/.krew/bin
 # }}}
 
 # gcloud {{{
-# The next line updates PATH for the Google Cloud SDK.
-if [ -f '/opt/gcloud/path.zsh.inc' ]; then . '/opt/gcloud/path.zsh.inc'; fi
-
-# The next line enables shell command completion for gcloud.
-if [ -f '/opt/gcloud/completion.zsh.inc' ]; then . '/opt/gcloud/completion.zsh.inc'; fi
+inspath /opt/gcloud/bin
+source /opt/gcloud/completion.zsh.inc
 # }}}
 
 # minikube {{{
+compinit_command minikube
+
+# shorthand
+alias mk='minikube'
+
+# keep it simple
 export MINIKUBE_IN_STYLE=0
-eval $(minikube docker-env)
+
+# XXX: when using minikube as the machine's docker engine, the documentation suggests just plainly adding
+# `eval "$(minikube docker-env)` to zshrc. in my experience this was taking about 300ms on average to actually
+# complete and all it would do is export the env vars below. to hasten things, just assume these are always
+# correct and export them statically. this may not always work.
+export DOCKER_TLS_VERIFY="1"
+export DOCKER_HOST="tcp://192.168.64.4:2376"
+export DOCKER_CERT_PATH="$HOME/.minikube/certs"
+export MINIKUBE_ACTIVE_DOCKERD="minikube"
+export USE_GKE_GCLOUD_AUTH_PROVIDER="True"
 # }}}
 
-# nvm {{{
-# nvm, but lazy load it
-export NVM_DIR="$HOME/.nvm"
-alias nvm="unalias nvm; [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"; nvm $@"
+# android studio {{{
+export ANDROID_HOME=~/Library/Android/sdk
+export PATH=${PATH}:${ANDROID_HOME}/platform-tools
+export PATH=${PATH}:${ANDROID_HOME}/build-tools/33.0.1
+export PATH=${PATH}:${ANDROID_HOME}/cmdline-tools/latest/bin
 # }}}
 
 # homebrew {{{
 export HOMEBREW_NO_ANALYTICS=1
-export HOMEBREW_INSTALL_BADGE="✅"
+export HOMEBREW_INSTALL_BADGE="✔"
 export HOMEBREW_INSTALL_FROM_API=1
 # }}}
 
 # pyenv {{{
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="${PYENV_ROOT}/bin:${PYENV_ROOT}/shims:$PATH"
-eval "$(pyenv init -)"
+# }}}
+
+# awscli {{{
+# NOTE: the aws completer uses bashcompinit which is done on-demand. there may be a way to cache
+# this but it's not slowing down shell start time so meh
+complete -C '/usr/local/bin/aws_completer' aws
+alias sso='aws sso login --profile'
+# }}}
+
+# docker {{{
+DOCKER_HIDE_LEGACY_COMMANDS=1
+# }}}
+
+
+
+# misc {{{
+alias vimwiki="vim -c 'VimwikiIndex'"
+alias vimw=vimwiki
+alias vw=vimwiki
 # }}}
 
 # }}}
 
-# zprof
+# hook: ensure no duplicates in paths
+typeset -gU cdpath fpath path
+
+# TODO: evaluate
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
+ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_USE_ASYNC=1
+
+# no two char commands which should handle the ones that don't make sense (cd, ls, etc.)
+# "?(#c,2)"
+_zauto_ignore_history=(
+  cd cp mv rm ls ln du df
+  "brew install"
+  "git (add|commit)"
+)
+_zauto_ignore_completion=(
+  "brew install"
+)
+
+# completion only: git add
+ZSH_AUTOSUGGEST_HISTORY_IGNORE="(${(j.|.)_zauto_ignore_history}) *"
+ZSH_AUTOSUGGEST_COMPLETION_IGNORE="(${(j.|.)_zauto_ignore_completion}) *"
+
+ZSH_AUTOSUGGEST_ACCEPT_WIDGETS+=(forward-word)
+
+# enable if you want to manually control everything below
+# ZSH_AUTOSUGGEST_MANUAL_REBIND=1
+
+# ZSH_AUTOSUGGEST_CLEAR_WIDGETS
+# ZSH_AUTOSUGGEST_EXECUTE_WIDGETS
+# ZSH_AUTOSUGGEST_PARTIAL_ACCEPT_WIDGETS
+# ZSH_AUTOSUGGEST_IGNORE_WIDGETS
+
+# ctrl-space: turn it on and present a suggestion or turn it off
+_zsh_autosuggest_togglefetch() {
+	if (( ${+_ZSH_AUTOSUGGEST_DISABLED} )); then
+    _zsh_autosuggest_enable
+    _zsh_autosuggest_fetch
+  else
+    _zsh_autosuggest_disable
+  fi
+}
+zle -N _zsh_autosuggest_togglefetch
+
+# home puts the thing in cmd mode
+# autosuggest-clear
+bindkey -M viins '\x1bM' autosuggest-execute  # ctrl-enter
+bindkey -M viins '^ ' autosuggest-accept # ctrl-space
+# bindkey -M viins '^ ' _zsh_autosuggest_togglefetch    # ctrl-space
+
+# start disabled
+# _zsh_autosuggest_disable
+
+source /usr/local/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+bindkey -M viins '^K' history-substring-search-up
+bindkey -M viins '^J' history-substring-search-down
+bindkey -M vicmd '^K' history-substring-search-up
+bindkey -M vicmd '^J' history-substring-search-down
+
+HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_FOUND='bg=yellow,fg=black'
+HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND='bg=red,fg=black'
+
+# here's an example of what you can do with -s: <C-T> in insert mode will send escape to cmd
+# mode, shift-I to start insert at beginning of line, type "man ", then go back to cmd mode, then
+# move forward one char and vi-add-next back to insert mode. types a space, back to cmd mode, delete
+# a char, go to EOL
+# bindkey -M viins -s '^T' '^[Iman ^[Ela ^[d$'

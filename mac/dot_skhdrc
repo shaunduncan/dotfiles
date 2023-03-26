@@ -1,0 +1,94 @@
+# volume controls
+lctrl + lshift - f12 : ~/bin/volumectl up
+lctrl + lshift - f11 : ~/bin/volumectl down
+lctrl + lshift - f10 : ~/bin/volumectl toggle
+
+# media controls
+lctrl + lshift - f9 : ~/bin/media_next
+lctrl + lshift - f8 : ~/bin/media_play_pause
+lctrl + lshift - f7 : ~/bin/media_prev
+
+# rotate tree
+ctrl + shift - space : yabai -m space --rotate 90
+
+# fast reload yabai
+ctrl + shift - r : launchctl kickstart -k "gui/${UID}/homebrew.mxcl.yabai"
+
+# moving windows to spaces: C-S-< and C-S->
+# TODO move windows to displays
+ctrl + shift - 0x2B : yabai -m window --space prev && yabai -m space --focus prev
+ctrl + shift - 0x2F : yabai -m window --space next && yabai -m space --focus next
+
+# create space, move window and follow focus - uses jq for parsing json (brew install jq)
+ctrl + alt + shift - n : yabai -m space --create && \
+                         index="$(yabai -m query --spaces --display | jq 'map(select(."native-fullscreen" == 0))[-1].index')" && \
+                         yabai -m window --space "${index}" && \
+                         yabai -m space --focus "${index}"
+
+# create space and follow focus - uses jq for parsing json (brew install jq)
+ctrl + alt - n : yabai -m space --create && \
+                 index="$(yabai -m query --spaces --display | jq 'map(select(."native-fullscreen" == 0))[-1].index')" && \
+                 yabai -m space --focus "${index}"
+
+# destroy space
+ctrl + alt + shift - d : yabai -m space --destroy
+
+# moving spaces
+ctrl + alt - h : yabai -m space --focus prev
+ctrl + alt - l : yabai -m space --focus next
+ctrl + alt - left : yabai -m space --focus prev
+ctrl + alt - right : yabai -m space --focus next
+
+# start screensaver/lock
+# shift + cmd - l : /System/Library/CoreServices/ScreenSaverEngine.app/Contents/MacOS/ScreenSaverEngine
+
+# aws yubikey
+# ctrl + shift - y : ~/bin/awskey
+
+# wm hotkeys
+ctrl + shift - left  : ~/bin/wm sl
+ctrl + shift - down  : ~/bin/wm sb
+ctrl + shift - up    : ~/bin/wm st
+ctrl + shift - right : ~/bin/wm sr
+
+# increase window size
+ctrl + cmd - h : ~/bin/wm w-
+ctrl + cmd - j : ~/bin/wm h+
+ctrl + cmd - k : ~/bin/wm h-
+ctrl + cmd - l : ~/bin/wm w+
+
+# increase grid size
+# TODO: do you use this??
+# ctrl + shift + cmd - up : ~/bin/wm gc-
+# ctrl + shift + cmd - left : ~/bin/wm gr-
+# ctrl + shift + cmd - down : ~/bin/wm gr+
+# ctrl + shift + cmd - right : ~/bin/wm gc+
+
+# move window
+ctrl + shift - h : ~/bin/wm x-
+ctrl + shift - j : ~/bin/wm y+
+ctrl + shift - k : ~/bin/wm y-
+ctrl + shift - l : ~/bin/wm x+
+
+# quick layouts
+ctrl + shift - 1 : ~/bin/wm s 2:2:0:0:1:2
+ctrl + shift - 2 : ~/bin/wm s 2:2:1:0:1:1
+ctrl + shift - 3 : ~/bin/wm s 2:2:1:1:1:1
+
+# grid prep to manage windows
+ctrl + shift - 4 : ~/bin/wm s 2:2:0:0:1:1
+ctrl + shift - 6 : ~/bin/wm s 2:3:0:0:1:1
+ctrl + shift - 8 : ~/bin/wm s 2:4:0:0:1:1
+
+# 3 wide when on full monitor
+ctrl + shift - 9 : ~/bin/wm s 1:3:0:0:1:1
+
+# window maximize: equivalent to zoom-parent, but using grid setting
+# TODO: this would be better to have as a toggle thing, but you need to edit the wm script
+ctrl + shift - 0 : ~/bin/wm s 1:1:0:0:1:1
+
+# fullscreen toggle (C-S-<Plus>): this is the "new space" fullscreen, not maximize
+ctrl + shift - 0x18 : yabai -m window --toggle native-fullscreen
+
+# sticky toggle
+ctrl + shift - s : yabai -m window --toggle sticky
