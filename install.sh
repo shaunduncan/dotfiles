@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 set -x
 
 platform=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -86,12 +87,15 @@ if [[ "${platform}" == "linux" ]]; then
   chsh -s $(which zsh)
 
   # go
-  pushd ${HOME}
-  wget -O go.tar.gz https://go.dev/dl/go1.20.2.linux-386.tar.gz
-  tar -xvzf go.tar.gz
-  rm -f go.tar.gz
+  if [[ ! -f ~/go/bin/go ]]; then
+    pushd ${HOME}
+    wget -O go.tar.gz https://go.dev/dl/go1.20.2.linux-386.tar.gz
+    tar -xvzf go.tar.gz
+    rm -f go.tar.gz
+    popd
+  fi
+
   export PATH=${PATH}:${HOME}/go/bin
-  popd
 
   # tools that require go
   go install gitlab.com/gitlab-org/cli@latest
@@ -112,6 +116,7 @@ if [[ "${platform}" == "linux" ]]; then
   # minikube
   curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
   sudo dpkg -i minikube_latest_amd64.deb
+  rm -f minikube_latest_amd64.deb
 
   # alacritty
   sudo apt install -y --no-install-recommends \
