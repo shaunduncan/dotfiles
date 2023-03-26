@@ -127,7 +127,7 @@ if [[ "${platform}" == "linux" ]]; then
   which kubectl >/dev/null 2>&1
   if [[ $? -ne 0 ]]; then
     sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+    "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://packages.cloud.google.com/ kubernetes-xenial main" | sudo tee /etc/apt/sources.list.d/kubernetes.list
     sudo apt update && sudo apt install -y --no-install-recommends kubectl
   fi
 
