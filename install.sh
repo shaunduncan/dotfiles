@@ -89,7 +89,7 @@ if [[ "${platform}" == "linux" ]]; then
   # go
   if [[ ! -f ~/go/bin/go ]]; then
     pushd ${HOME}
-    wget -O go.tar.gz https://go.dev/dl/go1.20.2.linux-386.tar.gz
+    wget -O go.tar.gz https://go.dev/dl/go1.20.2.linux-amd64.tar.gz
     tar -xvzf go.tar.gz
     rm -f go.tar.gz
     popd
