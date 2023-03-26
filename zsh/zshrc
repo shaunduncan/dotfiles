@@ -471,8 +471,10 @@ inspath $HOME/.krew/bin
 # }}}
 
 # gcloud {{{
-inspath /opt/gcloud/bin
-source /opt/gcloud/completion.zsh.inc
+if [[ -d /opt/gcloud ]]; then
+  inspath /opt/gcloud/bin
+  source /opt/gcloud/completion.zsh.inc
+fi
 # }}}
 
 # minikube {{{
