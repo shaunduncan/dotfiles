@@ -108,23 +108,30 @@ if [[ "${platform}" == "linux" ]]; then
     docker-compose-plugin
 
   # minikube
-  curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
-  sudo dpkg -i minikube_latest_amd64.deb
-  rm -f minikube_latest_amd64.deb
+  which minikube >/dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
+    sudo dpkg -i minikube_latest_amd64.deb
+    rm -f minikube_latest_amd64.deb
+  fi
 
   # alacritty
-  sudo apt install -y --no-install-recommends \
-    cmake \
-    pkg-config \
-    libfreetype6-dev \
-    libfontconfig1-dev \
-    libxcb-xfixes0-dev \
-    libxkbcommon-dev \
-    python3
-  cargo install alacritty
+  if [[ ! -f ~/.cargo/bin/alacritty ]]; then
+    sudo apt install -y --no-install-recommends \
+      cmake \
+      pkg-config \
+      libfreetype6-dev \
+      libfontconfig1-dev \
+      libxcb-xfixes0-dev \
+      libxkbcommon-dev \
+      python3
+    cargo install alacritty
+  fi
 
   # git-delta
-  cargo install git-delta
+  if [[ ! -f ~/.cargo/bin/delta ]]; then
+    cargo install git-delta
+  fi
 fi
 
 # change the default shell
