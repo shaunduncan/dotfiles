@@ -14,7 +14,7 @@ echo "installing dotfiles and utilities"
 
 # ensure all directories
 mkdir -p ~/bin
-mkdir -p ~/aws/cli
+mkdir -p ~/.aws/cli
 mkdir -p ~/.config/alacritty
 mkdir -p ~/.sockets
 mkdir -p ~/.ssh/conf.d
