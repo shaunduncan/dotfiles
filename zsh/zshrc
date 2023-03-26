@@ -537,12 +537,7 @@ alias vw=vimwiki
 typeset -gU cdpath fpath path
 
 # TODO: evaluate
-if (( $__is_linux )); then
-  source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-else
-  # homebrew installs this differently for mac
-  source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
-fi
+source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)

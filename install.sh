@@ -79,8 +79,16 @@ if [[ "${platform}" == "linux" ]]; then
     tree \
     vim \
     wget \
-    zsh \
-    zsh-autosuggestions
+    zsh
+
+  # zsh plugins
+  if [[ ! -d /usr/local/share/zsh-autosuggestions ]]; then
+    git clone https://github.com/zsh-users/zsh-autosuggestions /usr/local/share/zsh-autosuggestions
+  fi
+
+  if [[ ! -d /usr/local/share/zsh-history-substring-search ]]; then
+    git clone https://github.com/zsh-users/zsh-history-substring-search /usr/local/share/zsh-history-substring-search
+  fi
 
   # go
   if [[ ! -f ~/go/bin/go ]]; then
