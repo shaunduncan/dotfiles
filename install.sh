@@ -60,9 +60,6 @@ if [[ "${platform}" == "darwin" ]]; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   cat ${dotfiles}/mac/homebrew.list | xargs brew install -f -q
-
-  # change the default shell
-  chsh -s $(which zsh)
 fi
 
 # linux: this assumes debian-based
@@ -82,9 +79,6 @@ if [[ "${platform}" == "linux" ]]; then
     vim \
     wget \
     zsh
-
-  # change the default shell
-  chsh -s $(which zsh)
 
   # go
   if [[ ! -f ~/go/bin/go ]]; then
@@ -131,6 +125,11 @@ if [[ "${platform}" == "linux" ]]; then
 
   # git-delta
   cargo install git-delta
+fi
+
+# change the default shell
+if [[ "$(getent passwd $(id -un) | awk -F ':' '{print $NF}')" != "$(which zsh)" ]]; then
+  chsh -s $(which zsh)
 fi
 
 # tmux plugins
