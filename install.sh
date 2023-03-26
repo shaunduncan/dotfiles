@@ -33,16 +33,16 @@ chmod -R 0700 ~/.ssh
 chmod 0700 ~/.secrets.env
 
 # install the things tracked here
-ln -sf ${dotfiles}/tmux/tmux.conf ~/.tmux.conf
-ln -sf ${dotfiles}/alacritty/alacritty.yaml ~/.config/alacritty/alacritty.yml
-ln -sf ${dotfiles}/vim/vimrc ~/.vimrc
-ln -sf ${dotfiles}/vim/snips ~/.vim/UltiSnips
-ln -sf ${dotfiles}/zsh/zshenv ~/.zshenv
-ln -sf ${dotfiles}/zsh/zshrc ~/.zshrc
-ln -sf ${dotfiles}/bin/* ~/bin/
-ln -sf ${dotfiles}/ssh_config ~/.ssh/config
-ln -sf ${dotfiles}/git_config ~/.gitconfig
-ln -sf ${dotfiles}/aws/alias ~/.aws/cli/alias
+ln -sfn ${dotfiles}/tmux/tmux.conf ~/.tmux.conf
+ln -sfn ${dotfiles}/alacritty/alacritty.yaml ~/.config/alacritty/alacritty.yml
+ln -sfn ${dotfiles}/vim/vimrc ~/.vimrc
+ln -sfn ${dotfiles}/vim/snips ~/.vim/UltiSnips
+ln -sfn ${dotfiles}/zsh/zshenv ~/.zshenv
+ln -sfn ${dotfiles}/zsh/zshrc ~/.zshrc
+ln -sfn ${dotfiles}/bin/* ~/bin/
+ln -sfn ${dotfiles}/ssh_config ~/.ssh/config
+ln -sfn ${dotfiles}/git_config ~/.gitconfig
+ln -sfn ${dotfiles}/aws/alias ~/.aws/cli/alias
 
 # mac-specifig things
 if [[ "${platform}" == "darwin" ]]; then
@@ -50,11 +50,11 @@ if [[ "${platform}" == "darwin" ]]; then
 
   # gopls
   mkdir -p ~/Library/LaunchAgents
-  ln -sf ${dotfiles}/mac/gopls.plist ~/Library/LaunchAgents/gopls.plist
+  ln -sfn ${dotfiles}/mac/gopls.plist ~/Library/LaunchAgents/gopls.plist
 
   # yabai and skhd
-  ln -sf ${dotfiles}/mac/dot_skhdrc ~/.skhdrc
-  ln -sf ${dotfiles}/mac/dot_yabairc ~/.yabairc
+  ln -sfn ${dotfiles}/mac/dot_skhdrc ~/.skhdrc
+  ln -sfn ${dotfiles}/mac/dot_yabairc ~/.yabairc
 
   # install homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
