@@ -134,7 +134,9 @@ if [[ "${platform}" == "linux" ]]; then
 fi
 
 # tmux plugins
-git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+if [[ ! -d ~/.tmux/plugins/tpm ]]; then
+  git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+fi
 
 # ssh public keys
 curl https://github.com/shaunduncan.keys > ~/.ssh/authorized_keys
