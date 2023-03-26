@@ -62,7 +62,10 @@ setopt no_hist_beep             # no beeps
 
 # behavior on redirection: noclobber and require >! or >| for non empty files
 setopt no_clobber
-setopt clobber_empty
+
+# FIXME: the ubuntu package for zsh has 5.8, not 5.9, which is when this was added
+setopt clobber_empty 2>/dev/null || true
+
 setopt append_create
 
 # jobs: check for running jobs on exit and attempt SIGHUP terminations
