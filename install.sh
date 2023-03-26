@@ -1,5 +1,5 @@
 #!/bin/bash
-set -euo pipefail
+set -uo pipefail
 set -x
 
 platform=$(uname -s | tr '[:upper:]' '[:lower:]')
