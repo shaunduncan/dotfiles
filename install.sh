@@ -3,8 +3,8 @@
 platform=$(uname -s | tr '[:upper:]' '[:lower:]')
 dotfiles="${HOME}/.config/dotfiles"
 
-if [[ "${CWD}" != "${dotfiles}" ]]; then
-  echo "fatal: incorrect install dir: ${CWD} != ${dotfiles}"
+if [[ "${PWD}" != "${dotfiles}" ]]; then
+  echo "fatal: incorrect install dir: ${PWD} != ${dotfiles}"
   exit 1
 fi
 
@@ -41,10 +41,6 @@ ln -s ${dotfiles}/bin/* ~/bin/
 ln -s ${dotfiles}/ssh_config ~/.ssh/config
 ln -s ${dotfiles}/git_config ~/.gitconfig
 ln -s ${dotfiles}/aws/alias ~/.aws/cli/alias
-
-# ssh public keys
-curl https://github.com/shaunduncan.keys > ~/.ssh/authorized_keys
-chmod 0644 ~/.ssh/authorized_keys
 
 # mac-specifig things
 if [[ "${platform}" == "darwin" ]]; then
@@ -133,3 +129,7 @@ fi
 
 # tmux plugins
 git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+
+# ssh public keys
+curl https://github.com/shaunduncan.keys > ~/.ssh/authorized_keys
+chmod 0644 ~/.ssh/authorized_keys
