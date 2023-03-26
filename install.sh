@@ -92,20 +92,26 @@ if [[ "${platform}" == "linux" ]]; then
   export PATH=${PATH}:${HOME}/go/bin
 
   # tools that require go
-  go install gitlab.com/gitlab-org/cli/cmd/glab@latest
+  which glab >/dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
+    go install gitlab.com/gitlab-org/cli/cmd/glab@latest
+  fi
 
   # docker
-  sudo mkdir -m 0755 -p /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo \
-    "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
-    "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
-    sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-  sudo apt update
-  sudo apt install -y --no-install-recommends \
-    docker-ce-cli \
-    docker-buildx-plugin \
-    docker-compose-plugin
+  which docker >/dev/null 2>&1
+  if [[ $? -ne 0 ]]; then
+    sudo mkdir -m 0755 -p /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    echo \
+      "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+      "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+      sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    sudo apt update
+    sudo apt install -y --no-install-recommends \
+      docker-ce-cli \
+      docker-buildx-plugin \
+      docker-compose-plugin
+  fi
 
   # minikube
   which minikube >/dev/null 2>&1
