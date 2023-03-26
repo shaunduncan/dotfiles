@@ -64,6 +64,9 @@ fi
 
 # linux: this assumes debian-based
 if [[ "${platform}" == "linux" ]]; then
+  # use an up to date git
+  sudo add-apt-repository ppa:git-core/ppa
+
   sudo apt update && sudo apt install -y --no-install-recommends \
     ca-certificates \
     cargo \
