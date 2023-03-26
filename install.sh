@@ -126,10 +126,9 @@ if [[ "${platform}" == "linux" ]]; then
   # kubectl
   which kubectl >/dev/null 2>&1
   if [[ $? -ne 0 ]]; then
-    sudo curl -fsSLo /etc/apt/keyrings/kubernetes-archive-keyring.gpg https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    echo "deb [signed-by=/etc/apt/keyrings/kubernetes-archive-keyring.gpg] https://packages.cloud.google.com/ kubernetes-xenial main" | \
-      sudo tee /etc/apt/sources.list.d/kubernetes.list
-    sudo apt update && sudo apt install -y --no-install-recommends kubectl
+    curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/kubectl
   fi
 
   # minikube
