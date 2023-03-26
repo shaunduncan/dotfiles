@@ -83,11 +83,11 @@ if [[ "${platform}" == "linux" ]]; then
 
   # zsh plugins
   if [[ ! -d /usr/local/share/zsh-autosuggestions ]]; then
-    git clone https://github.com/zsh-users/zsh-autosuggestions /usr/local/share/zsh-autosuggestions
+    sudo git clone https://github.com/zsh-users/zsh-autosuggestions /usr/local/share/zsh-autosuggestions
   fi
 
   if [[ ! -d /usr/local/share/zsh-history-substring-search ]]; then
-    git clone https://github.com/zsh-users/zsh-history-substring-search /usr/local/share/zsh-history-substring-search
+    sudo git clone https://github.com/zsh-users/zsh-history-substring-search /usr/local/share/zsh-history-substring-search
   fi
 
   # go
