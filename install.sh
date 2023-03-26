@@ -1,4 +1,5 @@
 #!/bin/bash
+set -x
 
 platform=$(uname -s | tr '[:upper:]' '[:lower:]')
 dotfiles="${HOME}/.config/dotfiles"
@@ -31,16 +32,16 @@ chmod -R 0700 ~/.ssh
 chmod 0700 ~/.secrets.env
 
 # install the things tracked here
-ln -s ${dotfiles}/tmux/tmux.conf ~/.tmux.conf
-ln -s ${dotfiles}/alacritty/alacritty.yaml ~/.config/alacritty/alacritty.yml
-ln -s ${dotfiles}/vim/vimrc ~/.vimrc
-ln -s ${dotfiles}/vim/snips ~/.vim/UltiSnips
-ln -s ${dotfiles}/zsh/zshenv ~/.zshenv
-ln -s ${dotfiles}/zsh/zshrc ~/.zshrc
-ln -s ${dotfiles}/bin/* ~/bin/
-ln -s ${dotfiles}/ssh_config ~/.ssh/config
-ln -s ${dotfiles}/git_config ~/.gitconfig
-ln -s ${dotfiles}/aws/alias ~/.aws/cli/alias
+ln -sf ${dotfiles}/tmux/tmux.conf ~/.tmux.conf
+ln -sf ${dotfiles}/alacritty/alacritty.yaml ~/.config/alacritty/alacritty.yml
+ln -sf ${dotfiles}/vim/vimrc ~/.vimrc
+ln -sf ${dotfiles}/vim/snips ~/.vim/UltiSnips
+ln -sf ${dotfiles}/zsh/zshenv ~/.zshenv
+ln -sf ${dotfiles}/zsh/zshrc ~/.zshrc
+ln -sf ${dotfiles}/bin/* ~/bin/
+ln -sf ${dotfiles}/ssh_config ~/.ssh/config
+ln -sf ${dotfiles}/git_config ~/.gitconfig
+ln -sf ${dotfiles}/aws/alias ~/.aws/cli/alias
 
 # mac-specifig things
 if [[ "${platform}" == "darwin" ]]; then
@@ -48,11 +49,11 @@ if [[ "${platform}" == "darwin" ]]; then
 
   # gopls
   mkdir -p ~/Library/LaunchAgents
-  ln -s ${dotfiles}/mac/gopls.plist ~/Library/LaunchAgents/gopls.plist
+  ln -sf ${dotfiles}/mac/gopls.plist ~/Library/LaunchAgents/gopls.plist
 
   # yabai and skhd
-  ln -s ${dotfiles}/mac/dot_skhdrc ~/.skhdrc
-  ln -s ${dotfiles}/mac/dot_yabairc ~/.yabairc
+  ln -sf ${dotfiles}/mac/dot_skhdrc ~/.skhdrc
+  ln -sf ${dotfiles}/mac/dot_yabairc ~/.yabairc
 
   # install homebrew
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -65,7 +66,7 @@ fi
 
 # linux: this assumes debian-based
 if [[ "${platform}" == "linux" ]]; then
-  sudo apt update -qq && sudo apt install -y --no-install-recomments \
+  sudo apt update -qq && sudo apt install -y --no-install-recommends \
     ca-certificates \
     cargo \
     curl \
