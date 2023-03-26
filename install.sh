@@ -98,7 +98,7 @@ if [[ "${platform}" == "linux" ]]; then
   export PATH=${PATH}:${HOME}/go/bin
 
   # tools that require go
-  go install gitlab.com/gitlab-org/cli@latest
+  go install gitlab.com/gitlab-org/cli/cmd/glab@latest
 
   # docker
   sudo mkdir -m 0755 -p /etc/apt/keyrings
