@@ -57,15 +57,22 @@ colorschemes:
       black:   '#000000'
       red:     '#ff001d'
       green:   '#30db22'
-      yellow:  '#ff8f00'
+      yellow:  '#ffee67'
       blue:    '#2b7df0'
       magenta: '#ab47bc'
       cyan:    '#32bcd9'
       white:   '#ffffff'
 
-    # use consistent colors
+    # use the same colors except for "bright black"
     bright:
-      *colorscheme-dalton-normal
+      black:   '#555555'
+      red:     '#ff001d'
+      green:   '#30db22'
+      yellow:  '#ffee67'
+      blue:    '#2b7df0'
+      magenta: '#ab47bc'
+      cyan:    '#32bcd9'
+      white:   '#ffffff'
     dim:
       *colorscheme-dalton-normal
   google-dark: &colorscheme-google-dark
@@ -127,9 +134,42 @@ colorschemes:
       white:   '#ffffff'
     dim:
       *colorscheme-tomorrow-night-bright-normal
+  ayu : &colorscheme-ayu
+    primary:
+      background: '#000000'
+      foreground: '#ffffff'
+
+    # invert colors for selection
+    selection:
+      text: CellBackground
+      background: CellForeground
+
+    # palette
+    normal: &colorscheme-ayu-normal
+      black:   '#000000'
+      red:     '#ff3333'
+      green:   '#b8cc52'
+      yellow:  '#ffee99'
+      blue:    '#36a3d9'
+      magenta: '#d75fd7'
+      cyan:    '#95e6cb'
+      white:   '#ffffff'
+
+    # use consistent colors
+    bright:
+      black:   '#151a1e'
+      red:     '#ff3333'
+      green:   '#b8cc52'
+      yellow:  '#ffee99'
+      blue:    '#36a3d9'
+      magenta: '#d75fd7'
+      cyan:    '#95e6cb'
+      white:   '#ffffff'
+    dim:
+      *colorscheme-ayu-normal
 
 colors:
-  *colorscheme-tomorrow-night-bright
+  *colorscheme-dalton
 
 # disable visual bell
 bell:

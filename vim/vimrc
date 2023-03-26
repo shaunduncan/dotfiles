@@ -147,7 +147,7 @@ call plug#end()
 
 " VARS {{{
 " custom theme options
-let g:my_theme=get(environ(), 'MY_THEME', 'ayu')
+let g:my_theme=get(environ(), 'MY_THEME', 'my_dalton')
 " terminal_ansi_colors
 " FIXME: need a consistent color set for error/warning
 let g:my_theme_overrides=
