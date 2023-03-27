@@ -351,12 +351,12 @@ alias zcp='zmv -i -C'
 alias zln='zmv -i -L'
 
 # default behaviors
-alias ag='ag -U'             # don't ignore things from .gitignore
-alias history='fc -liD 0'    # full history with date/time info
-alias info='info --vi-keys'  # use better navigation
-alias ls='ls -F'             # extra hints for the outputs
-alias ping='ping -c 10'      # usually don't need it to go forever
-alias dirs='dirs -v'         # make the default output more useful
+alias ag='ag -U'              # don't ignore things from .gitignore
+alias history='fc -liD 0'     # full history with date/time info
+alias info='info --vi-keys'   # use better navigation
+alias ls='ls -F --color=auto' # extra hints for the outputs and auto color
+alias ping='ping -c 10'       # usually don't need it to go forever
+alias dirs='dirs -v'          # make the default output more useful
 
 # preferred command alternatives
 alias python='python3'
