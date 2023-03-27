@@ -64,7 +64,7 @@ __ps_dirpath() {
     local relpath=${$(git rev-parse --show-prefix)%/}
 
     # repo relative prompt: magenta(repo_name) cyan(relative_path)
-    ps_dirpath_="%F{magenta}@${origin:t}:${relpath:-~}%f "
+    ps_dirpath_="%F{magenta}@${origin:t:r}:${relpath:-~}%f "
   fi
 }
 # }}}
