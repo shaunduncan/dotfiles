@@ -77,7 +77,10 @@ unset __less
 # platform-specific things
 if (( $__is_linux )); then
   # This was some weird xfce thing with tmux panes
-  export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/$(pgrep -U $USERNAME xfce4-session)/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
+  local __xfcepid=$(pgrep -U ${USERNAME} xfce4-session)
+  if [[ $__xfcepid != "" ]]; then
+    export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/${__xfcepid}/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
+  fi
 elif (( $__is_macos )); then
   # only add this to the path on mac, it won't exist on linux
   # inspath $HOME/Library/Python/3.9/bin
