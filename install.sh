@@ -23,6 +23,8 @@ mkdir -p ~/.tmux
 mkdir -p ~/.tmux/plugins
 mkdir -p ~/.vim
 mkdir -p ~/.zsh
+mkdir -p ~/.zsh/backup
+mkdir -p ~/.zsh/undo
 
 # files that should exist
 touch ~/.secrets.env
