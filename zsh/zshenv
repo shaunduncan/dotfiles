@@ -77,7 +77,7 @@ unset __less
 # platform-specific things
 if (( $__is_linux )); then
   # This was some weird xfce thing with tmux panes
-  local __xfcepid=$(pid -U ${USERNAME} xfce4-session)
+  local __xfcepid=$(pgrep -U ${USERNAME} xfce4-session)
   if [[ $__xfcepid != "" ]]; then
     export DBUS_SESSION_BUS_ADDRESS=$(tr '\0' '\n' < /proc/${__xfcepid}/environ|grep ^DBUS_SESSION_BUS_ADDRESS=|cut -d= -f2-)
   fi
