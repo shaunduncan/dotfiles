@@ -155,7 +155,7 @@ let g:my_theme_overrides=
   \   #{group: ['CursorLineNr'], attrs: 'bold'},
   \   #{group: ['Error'], guifg: 'black', ctermfg: '0'},
   \   #{group: ['ErrorMsg'], from: 'Error', attrs: 'reverse', strategy: 'replace'},
-  \   #{group: ['Folded', 'FoldColumn'], from: 'SpellRare', guibg: 'NONE', ctermbg: 'NONE', attrs: 'NONE'},
+  \   #{group: ['Folded', 'FoldColumn'], from: 'SpellRare', guifg: 'Cyan', guibg: 'NONE', ctermbg: 'NONE', attrs: 'NONE'},
   \   #{group: ['IncSearch', 'MatchParen'], linksto: 'Search'},
   \   #{group: ['Italic'], attrs: 'italic'},
   \   #{group: ['SpellBad', 'SpellLocal', 'SpellCap', 'SpellRare'], attrs: 'undercurl'},
