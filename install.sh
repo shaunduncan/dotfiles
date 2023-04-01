@@ -78,6 +78,7 @@ if [[ "${platform}" == "linux" ]]; then
     htop \
     jq \
     mlocate \
+    net-tools \
     qemu \
     silversearcher-ag \
     tmux \
