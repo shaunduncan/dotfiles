@@ -754,7 +754,8 @@ let g:ale_linters={
   \ 'bash': [],
   \ 'c': [],
   \ 'cpp': [],
-  \ 'vim': ['ale_custom_linting_rules']
+  \ 'java': [],
+  \ 'vim': ['ale_custom_linting_rules'],
 \ }
 
 " non-breaking spaces because i suppose ale trims strings

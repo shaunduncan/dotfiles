@@ -494,7 +494,7 @@ export MINIKUBE_IN_STYLE=0
 # complete and all it would do is export the env vars below. to hasten things, just assume these are always
 # correct and export them statically. this may not always work.
 export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.64.4:2376"
+export DOCKER_HOST="tcp://192.168.64.7:2376"
 export DOCKER_CERT_PATH="$HOME/.minikube/certs"
 export MINIKUBE_ACTIVE_DOCKERD="minikube"
 export USE_GKE_GCLOUD_AUTH_PROVIDER="True"
