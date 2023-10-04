@@ -124,6 +124,9 @@
     ; fetch+pull
     up = "!git fetch && git pull"
 
+    ; fixup
+    fixup = commit --amend -a --no-edit
+
     ; checkout or create
     co = "!f() { git checkout $1 || git checkout -b $1; }; f"
 

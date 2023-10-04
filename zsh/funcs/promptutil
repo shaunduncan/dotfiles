@@ -72,7 +72,7 @@ __ps_dirpath() {
 # func: ps_userinfo: current user info, mainly for ssh connections {{{
 __ps_userinfo() {
   # is this an ssh connection? if so, show the user and current hostname
-  if (( ${+SSH_CONNECTION} )); then
+  if (( ${+SSH_TTY} )); then
     ps_userinfo_="%F{red}@%m%f "
   else
     ps_userinfo_=""

@@ -33,6 +33,48 @@ function! <SID>termcolor(color) abort
 endfunction
 " }}}
 
+
+" hlget is a vim/neovim compatible way to get a highlight group {{{
+function! <SID>hlget(...) abort
+  if !has('nvim')
+    " vim
+    return call('hlget', a:000)
+  else
+    " neovim
+    return [nvim_get_hl(0, {'name': a:1, 'link': get(a:000, 1, v:true)})]
+  endif
+endfunction
+" }}}
+
+" hlset is a vim/neovim compatible way to set a highlight group {{{
+function! <SID>hlset(...) abort
+  if !has('nvim')
+    " vim
+    return call('hlset', a:000)
+  else
+    " neovim
+    for cfg in a:1
+      " remove incompatible keys
+      let l:name = remove(cfg, 'name')
+
+      " invalid
+      if has_key(cfg, 'gui')
+        call remove(cfg, 'gui')
+      endif
+
+      " convert
+      for key in ['guifg', 'guibg']
+        if has_key(cfg, key)
+          let cfg[substitute(key, 'gui', '', '')] = remove(cfg, key)
+        endif
+      endfor
+
+      call nvim_set_hl(0, l:name, cfg)
+    endfor
+  endif
+endfunction
+" }}}
+
 " s:airline_colorset: get the colorset list of term numbers for airline themes {{{
 function! <SID>airline_colorset(palette, fgbg) abort
   let l:fg = a:fgbg[0]
@@ -185,7 +227,7 @@ function! my#themes#to_colorscheme(name) abort
   call l:Hi('.3', 'PMenuSbar')
   call l:Hi('.4', 'PMenuThumb')
   call l:Hi('08', 'Error', 'ErrorMsg')
-  call l:Hi('10', 'VertSplit')
+  call l:Hi('20', 'VertSplit')
   call l:Hi('19', 'IncSearch')
   call l:Hi('1A', 'Search', 'Substitute')
   call l:Hi('20', 'Folded')
@@ -195,8 +237,7 @@ function! my#themes#to_colorscheme(name) abort
   call l:Hi('32', 'FoldColumn')
   call l:Hi('41', 'StatusLine', 'CursorLineNr')
   call l:Hi('50', 'Normal', 'WildMenu', 'Cursor')
-  call l:Hi('62', 'PMenu')
-  call l:Hi('62', 'PMenuSel')
+  call l:Hi('60', 'Pmenu', 'PmenuSel')
   call l:Hi('8.', 'Debug', 'Macro', 'Exception', 'TooLong', 'VisualNOS', 'WarningMsg')
   call l:Hi('9.', 'Underlined')
   call l:Hi('A0', 'MatchParen')
@@ -204,6 +245,10 @@ function! my#themes#to_colorscheme(name) abort
   call l:Hi('B1', 'TabLineSel')
   call l:Hi('D.', 'Directory', 'Question', 'Title')
   call l:Hi('D0', 'Conceal')
+
+  if has('nvim')
+    call l:Hi('40', 'FloatBorder', 'FloatTitle')
+  endif
 
   " because i forget about it all the time: make vim9 style comments loud
   call l:Hi('08', 'vim9Comment')
@@ -399,7 +444,7 @@ endfunction
 " }}}
 
 function! s:maybe(src, dst, attr) abort
-  let l:src_group=hlget(a:src)
+  let l:src_group = <SID>hlget(a:src)
 
   if len(l:src_group) < 1
     return
@@ -423,7 +468,7 @@ function! my#themes#apply_theme_overrides() abort
 
     if has_key(l:spec, 'from')
       " copy the colors from somewhere else
-      let l:spec=extend(get(hlget(l:spec.from, v:true), 0, {}), l:spec)
+      let l:spec=extend(get(<SID>hlget(l:spec.from, v:true), 0, {}), l:spec)
       unlet l:spec['from']
 
       " fix: we need to remove the 'cleared' key if it's there otherwise the colors won't take
@@ -432,22 +477,42 @@ function! my#themes#apply_theme_overrides() abort
       endif
     endif
 
-    " attrs just need to apply to cterm/gui directly
+    " attrs just need to apply to cterm/gui directly. handle this differently for neovim though
     if has_key(l:spec, 'attrs')
-      let l:value=remove(l:spec, 'attrs')
+      let l:attr_string=remove(l:spec, 'attrs')
+      let l:attrs={}
 
-      let l:attrs=split(l:value, ',')
-      let l:value={}
+      " special case for NONE, leave empty
+      if l:attr_string != 'NONE'
+        let l:attr_list=split(l:attr_string, ',')
 
-      for attr in l:attrs
-        let l:value[trim(attr)]=v:true
-      endfor
+        for attr in l:attr_list
+          let l:attrs[trim(attr)]=v:true
+        endfor
+      else
+        " neovim special case: NONE means explicitly turn off all attributes
+        if has('nvim')
+          let l:spec = extend(copy(l:spec),
+          \ {
+            \ 'bold': v:false,
+            \ 'standout': v:false,
+            \ 'underline': v:false,
+            \ 'undercurl': v:false,
+            \ 'underdouble': v:false,
+            \ 'underdotted': v:false,
+            \ 'underdashed': v:false,
+            \ 'strikethrough': v:false,
+            \ 'italic': v:false,
+            \ 'reverse': v:false
+          \ })
+        endif
+      endif
 
-      let l:spec['gui']=l:value
-      let l:spec['cterm']=l:value
+      let l:spec['gui']=l:attrs
+      let l:spec['cterm']=l:attrs
     endif
 
-    " what strategy are we using here? merge or replace (default replace)
+    " what strategy are we using here? merge or replace (default merge)
     if has_key(l:spec, 'strategy')
       let l:strategy=remove(l:spec, 'strategy')
     else
@@ -456,7 +521,12 @@ function! my#themes#apply_theme_overrides() abort
 
     " if we're performing a link, make sure we force it
     if has_key(l:spec, 'linksto')
-      let l:spec['force']=v:true
+      " neovim uses 'link' not 'linksto'
+      if has('nvim')
+        let l:spec['link'] = remove(l:spec, 'linksto')
+      else
+        let l:spec['force']=v:true
+      endif
     endif
 
     " apply the spec to each group
@@ -468,7 +538,7 @@ function! my#themes#apply_theme_overrides() abort
       if l:strategy == 'replace'
         exec 'hi clear '.group
       else
-        let l:cur=get(hlget(group, v:true), 0, {})
+        let l:cur=get(<SID>hlget(group, v:true), 0, {})
 
         if has_key(l:cur, 'cleared')
           unlet l:cur.cleared
@@ -482,11 +552,11 @@ function! my#themes#apply_theme_overrides() abort
 
         " clear and check for any default style (don't resolve the group)
         exec 'hi clear '.group
-        let l:check=get(hlget(group), 0, {})
+        let l:check=get(<SID>hlget(group), 0, {})
 
         " start with this, merge the previous original
         if has_key(l:check, 'default') && l:check.default
-          let l:cur=extend(get(hlget(group, v:true), 0, {}), l:cur, 'force')
+          let l:cur=extend(get(<SID>hlget(group, v:true), 0, {}), l:cur, 'force')
         endif
 
         let l:groupcfg=extend(l:cur, l:groupcfg, 'force')
@@ -495,7 +565,7 @@ function! my#themes#apply_theme_overrides() abort
       call add(l:hlcfg, l:groupcfg)
     endfor
 
-    call hlset(l:hlcfg)
+    call <SID>hlset(l:hlcfg)
   endfor
 endfunction
 

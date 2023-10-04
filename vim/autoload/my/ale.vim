@@ -13,7 +13,10 @@ function! my#ale#get_popup_opts(...) abort
   endif
 
   if has('nvim')
-    return {}
+    return {
+    \ 'title': ' ALE: ' . (l:loc.linter_name) . ' ',
+    \ 'border': g:my_nbox_double_tb,
+    \}
   else
     return {
     \ 'title': ' ALE: ' . (l:loc.linter_name) . ' ',

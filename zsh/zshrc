@@ -337,6 +337,14 @@ bindkey "${terminfo[kdch1]}" vi-delete-char
 
 # ALIASES {{{
 
+# maybe try using nvim by default
+which nvim &>/dev/null && alias vim='nvim' && export EDITOR=nvim
+
+# safety: don't allow vim/nvim when we're using a vim terminal
+if (( ${+NVIM} )); then
+  alias nvim="f() { echo lol you\\'re already in vim dummy }; f"
+fi
+
 # paranoia mode
 alias rm='rm -i'
 alias mv='mv -i'
@@ -382,7 +390,7 @@ if (( $__is_macos )); then
   alias updatedb='/usr/libexec/locate.updatedb'
 
   # use the gnu variant
-  which gtar &>/dev/null || alias tar=gtar
+  which gtar &>/dev/null && alias tar='gtar'
 fi
 
 # tmux
@@ -494,7 +502,7 @@ export MINIKUBE_IN_STYLE=0
 # complete and all it would do is export the env vars below. to hasten things, just assume these are always
 # correct and export them statically. this may not always work.
 export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.64.7:2376"
+export DOCKER_HOST="tcp://192.168.64.11:2376"
 export DOCKER_CERT_PATH="$HOME/.minikube/certs"
 export MINIKUBE_ACTIVE_DOCKERD="minikube"
 export USE_GKE_GCLOUD_AUTH_PROVIDER="True"

@@ -19,12 +19,9 @@ mkdir -p ~/.config/alacritty
 mkdir -p ~/.sockets
 mkdir -p ~/.ssh/conf.d
 mkdir -p ~/.ssh/socks
-mkdir -p ~/.tmux
 mkdir -p ~/.tmux/plugins
-mkdir -p ~/.vim
-mkdir -p ~/.zsh
-mkdir -p ~/.zsh/backup
-mkdir -p ~/.zsh/undo
+mkdir -p ~/.vim/{backup,nvim-backup,nvim-undo,undo,view}
+mkdir -p ~/.zsh/{backup,undo}
 
 # files that should exist
 touch ~/.secrets.env
@@ -39,6 +36,7 @@ ln -sfn ${dotfiles}/tmux/tmux.conf ~/.tmux.conf
 ln -sfn ${dotfiles}/alacritty/alacritty.yaml ~/.config/alacritty/alacritty.yml
 ln -sfn ${dotfiles}/vim/vimrc ~/.vimrc
 ln -sfn ${dotfiles}/vim/snips ~/.vim/UltiSnips
+ln -sfn ${dotfiles}/nvim ~/.config/
 ln -sfn ${dotfiles}/zsh/zshenv ~/.zshenv
 ln -sfn ${dotfiles}/zsh/zshrc ~/.zshrc
 ln -sfn ${dotfiles}/bin/* ~/bin/
@@ -165,7 +163,15 @@ if [[ "${platform}" == "linux" ]]; then
 fi
 
 # change the default shell
-if [[ "$(getent passwd $(id -un) | awk -F ':' '{print $NF}')" != "$(which zsh)" ]]; then
+usershell=""
+
+if [[ "${platform}" == "darwin" ]]; then
+  usershell=$(dscl . -read /Users/$(id -un) | egrep UserShell | awk '{print $NF}')
+else
+  usershell=$(getent passwd $(id -un) | awk -F ':' '{print $NF}')
+fi
+
+if [[ "${usershell}" != "$(which zsh)" ]]; then
   chsh -s $(which zsh)
 fi
 

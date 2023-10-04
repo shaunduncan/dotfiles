@@ -10,6 +10,14 @@ let g:my_box_dotted    = ['┈', '┊', '┈', '┊', '┌', '┐', '┘', '└'
 let g:my_box_heavy     = ['━', '┃', '━', '┃', '┏', '┓', '┛', '┗']
 let g:my_box_heavy_tb  = ['━', '│', '━', '│', '┍', '┑', '┙', '┕']
 let g:my_box_double_tb = ['═', '│', '═', '│', '╒', '╕', '╛', '╘']
+
+let g:my_nbox_normal    = ['─', '│', '─', '│', '┌', '┐', '┘', '└']
+let g:my_nbox_rounded   = ['─', '│', '─', '│', '╭', '╮', '╯', '╰']
+let g:my_nbox_dashed    = ['╌', '╎', '╌', '╎', '┌', '┐', '┘', '└']
+let g:my_nbox_dotted    = ['┈', '┊', '┈', '┊', '┌', '┐', '┘', '└']
+let g:my_nbox_heavy     = ['━', '┃', '━', '┃', '┏', '┓', '┛', '┗']
+let g:my_nbox_heavy_tb  = ['━', '│', '━', '│', '┍', '┑', '┙', '┕']
+let g:my_nbox_double_tb = ['╒', '═', '╕', '│', '╛', '═', '╘', '│']
 " }}}
 
 " shorthand: split and vsplit global file marks

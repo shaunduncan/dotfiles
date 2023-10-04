@@ -24,15 +24,15 @@ scrolling:
 font:
   size: 12.0
   normal:
-    family: 'Triplicate B Code'
+    # triplicate a is a little heavier than b but shows up better
+    family: 'Triplicate A Code'
     # family: 'Fixedsys Excelsior 3.01'
 
-  # all fonts inherit from normal, but the bold for triplicate is a little too heavy
-  # so override those to be either normal or italic
-  bold:
-    style: Regular
+  # disable italics
   bold_italic:
-    style: Italic
+    style: Bold
+  italic:
+    style: Regular
 
   # the triplicate box drawing characters don't look right for double line borders
   # so just use the builtin font
@@ -148,28 +148,28 @@ colorschemes:
     normal: &colorscheme-ayu-normal
       black:   '#000000'
       red:     '#ff3333'
-      green:   '#b8cc52'
-      yellow:  '#ffee99'
+      green:   '#aad94c'
+      yellow:  '#ffb454'
       blue:    '#36a3d9'
-      magenta: '#d75fd7'
+      magenta: '#e799ff'
       cyan:    '#95e6cb'
       white:   '#ffffff'
 
     # use consistent colors
     bright:
-      black:   '#151a1e'
+      black:   '#acb6bf'
       red:     '#ff3333'
-      green:   '#b8cc52'
-      yellow:  '#ffee99'
+      green:   '#aad94c'
+      yellow:  '#ffb454'
       blue:    '#36a3d9'
-      magenta: '#d75fd7'
+      magenta: '#e799ff'
       cyan:    '#95e6cb'
       white:   '#ffffff'
     dim:
       *colorscheme-ayu-normal
 
 colors:
-  *colorscheme-dalton
+  *colorscheme-ayu
 
 # disable visual bell
 bell:
@@ -197,7 +197,7 @@ shell:
     - --login
 
 mouse:
-  hide_when_typing: true
+  hide_when_typing: false
 
 # regex hints
 hints:

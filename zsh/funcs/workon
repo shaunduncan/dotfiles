@@ -40,9 +40,9 @@ if [[ -z "$(git worktree list --porcelain | egrep "^worktree ${WORK_DIR}")" ]]; 
 
   ref=""
 
-  if [ ! -z "$(git branch -l ${WORK_NAME})"]; then
+  if [[ ! -z "$(git branch -l ${WORK_NAME})" ]]; then
     ref=${WORK_NAME}
-  elif [ ! -z "$(git branch -rl origin/${WORK_NAME})" ]; then
+  elif [[ ! -z "$(git branch -rl origin/${WORK_NAME})" ]]; then
     ref=origin/${WORK_NAME}
   fi
 

@@ -1,7 +1,7 @@
 [toplevel]
 console =
   !f() {
-    session_token=$(python3 << EOF 2>/dev/null
+    session_token=$(python3 << EOF
         import boto3
         import json
         import sys

@@ -69,5 +69,15 @@ shlvl() {
   print $(( $SHLVL - ${+TMUX} ))
 }
 
+# utility for showing status of all git work trees
+wt-stat() {
+  for l in $(git worktree list|awk '{print $1}'); do
+    echo $l
+    echo ${(l:${#l}::-:)}
+    git --work-tree=$l --git-dir=$l/.git status --short | tail -n +2
+    echo ""
+  done
+}
+
 # only run once
 unfunction $0

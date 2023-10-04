@@ -2,6 +2,7 @@ set nocompatible
 
 " FIXME: need a keyboard shortcut to close buffers `goterm://*`
 
+" FIXME: move these somewhere
 function! GetVisual()
     try
         let v_save = @v
@@ -55,17 +56,11 @@ endf
 " inoremap <c-l> <right><c-x><c-f>
 
 " vim-plug auto-install {{{
-let data_dir = has('nvim') ? stdpath('data') . '/site' : '~/.vim'
+let data_dir = has('nvim') ? stdpath('config') . '/' : '~/.vim'
 if empty(glob(data_dir . '/autoload/plug.vim'))
   silent exec '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
   au VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
-
-" by default, don't run tagbar unless it's for specific filetypes
-let b:tagbar_ignore=1
-aug vimrc-plugin-tagbar | au!
-  au BufNewFile,BufReadPost *.go let b:tagbar_ignore=0
-aug end
 
 " FIXME
 " set switchbuf=useopen
@@ -83,9 +78,16 @@ Plug 'shaunduncan/dotfiles', {
   \ }
 
 " Plug 'Raimondi/delimitMate'
+" Plug 'szw/vim-maximizer' ... alternative to zoom tab
 
 " filetype/language support {{{
-Plug 'fatih/vim-go',             { 'do': ':GoUpdateBinaries' }
+
+" don't use vim-go/ale for neovim
+if !has('nvim')
+  Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
+  Plug 'dense-analysis/ale'
+endif
+
 Plug 'cespare/vim-toml',         { 'for': 'toml' }
 Plug 'hashivim/vim-terraform',   { 'for': 'terraform' }
 Plug 'uarun/vim-protobuf',       { 'for': 'proto' }
@@ -98,7 +100,6 @@ Plug 'udalov/kotlin-vim'
 Plug 'AndrewRadev/quickpeek.vim'
 Plug 'Konfekt/FastFold'
 Plug 'SirVer/ultisnips'
-Plug 'dense-analysis/ale'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 
@@ -109,9 +110,63 @@ Plug 'junegunn/limelight.vim', { 'for': 'markdown' }
 " git tools
 Plug 'tpope/vim-fugitive'
 Plug 'shumphrey/fugitive-gitlab.vim'
+Plug 'junegunn/gv.vim'
 
 " some personalizations and custom mods
 Plug 'shaunduncan/tagbar'  " preservim/tagbar
+
+" neovim specific {{{
+
+if has('nvim')
+  " requirement for some
+  Plug 'nvim-lua/plenary.nvim'
+
+  " debugging
+  " Plug 'mfussenegger/nvim-dap'
+  " Plug 'rcarriga/nvim-dap-ui'
+  " Plug 'leoluz/nvim-dap-go', { 'for': 'go' }
+
+  " lsp
+  Plug 'nvim-treesitter/nvim-treesitter'
+  Plug 'neovim/nvim-lspconfig'
+  Plug 'williamboman/mason.nvim'
+  Plug 'williamboman/mason-lspconfig.nvim'
+  Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
+
+  " golang
+  Plug 'ray-x/go.nvim'
+  Plug 'ray-x/guihua.lua'
+
+  " lsp symbols in fzf
+  Plug 'gfanto/fzf-lsp.nvim'
+
+  " try out completion at some point?
+  " Plug 'hrsh7th/cmp-nvim-lsp'
+  " Plug 'hrsh7th/cmp-buffer'
+  " Plug 'hrsh7th/cmp-path'
+  " Plug 'hrsh7th/cmp-nvim-lua'
+  " Plug 'hrsh7th/nvim-cmp'
+
+  " git
+  Plug 'sindrets/diffview.nvim'
+
+  " other
+  Plug 'sindrets/winshift.nvim'
+
+  " integration with glow to render markdown
+  Plug 'ellisonleao/glow.nvim'
+  Plug 'JASONews/glow-hover.nvim'
+
+  " dim non-active buffers
+  " Plug 'sunjon/Shade.nvim'
+  " Plug 'folke/twilight.nvim'
+  Plug 'RRethy/nvim-base16'
+
+  Plug 'jbyuki/venn.nvim'
+endif
+
+" }}}
+
 " }}}
 
 " vim utilities {{{
@@ -139,23 +194,34 @@ Plug 'vimwiki/vimwiki'
 " Plug 'dstein64/vim-startuptime'
 " }}}
 
-Plug 'flazz/vim-colorschemes'
-Plug 'felixhummel/setcolors.vim'
+" Plug 'flazz/vim-colorschemes'
+" Plug 'felixhummel/setcolors.vim'
+
+" TODO: potential alternative to netrw
+" Plug 'lambdalisue/fern.vim'
+
+" colorschemes
+Plug 'vv9k/vim-github-dark'
+Plug 'dikiaap/minimalist'
+Plug 'ayu-theme/ayu-vim'
+Plug 'ayu-theme/ayu-vim-airline'
 
 call plug#end()
 " }}}
 
 " VARS {{{
-" custom theme options
-let g:my_theme=get(environ(), 'MY_THEME', 'my_dalton')
+
+" custom theme options (uncomment to use a custom built theme)
+" let g:my_theme=get(environ(), 'MY_THEME', 'my_nova')
+
 " terminal_ansi_colors
 " FIXME: need a consistent color set for error/warning
 let g:my_theme_overrides=
   \ ['core coloring', [
   \   #{group: ['CursorLineNr'], attrs: 'bold'},
-  \   #{group: ['Error'], guifg: 'black', ctermfg: '0'},
+  \   #{group: ['Error'], guifg: 'black', ctermfg: 'black'},
   \   #{group: ['ErrorMsg'], from: 'Error', attrs: 'reverse', strategy: 'replace'},
-  \   #{group: ['Folded', 'FoldColumn'], from: 'SpellRare', guifg: 'Cyan', guibg: 'NONE', ctermbg: 'NONE', attrs: 'NONE'},
+  \   #{group: ['Folded', 'FoldColumn'], from: 'SpellRare', guifg: 'Cyan', guibg: 'NONE', ctermbg: 'NONE', attrs: 'NONE', strategy: 'replace'},
   \   #{group: ['IncSearch', 'MatchParen'], linksto: 'Search'},
   \   #{group: ['Italic'], attrs: 'italic'},
   \   #{group: ['SpellBad', 'SpellLocal', 'SpellCap', 'SpellRare'], attrs: 'undercurl'},
@@ -176,6 +242,7 @@ let g:my_theme_overrides=
   \ ['vimwiki', [
   \   #{group: ['VimwikiCheckBoxDone'], from: 'Comment', attrs: 'italic,strikethrough'},
   \ ]][1]
+
 let g:my_theme_sync_fold_color=0
 let g:my_theme_minimal_cursorline=1
 
@@ -193,7 +260,7 @@ set autoread
 set nofsync
 set fileformats=unix
 set backspace=indent,eol,start
-set history=1000  " remember this many ':' vim commands
+set history=500 " remember this many ':' vim commands
 
 " turn on titles
 set title
@@ -367,7 +434,8 @@ endif
 " KEYMAP {{{
 " use spacebar as the leader key, default to a 500ms timeout to wait for keys
 let mapleader="\<Space>"
-set timeoutlen=400
+set timeoutlen=500
+set updatetime=500
 
 " find/replace word under cursor
 nn <Leader>R %s/<C-r><C-w>/
@@ -501,17 +569,44 @@ let &t_Te="\e[29m"
 
 " handle colorscheme updates
 au vimrc ColorSchemePre * hi clear | syntax reset
-au vimrc ColorScheme,VimEnter,FileType * call my#themes#apply_theme_overrides()
+" au vimrc ColorScheme,VimEnter,FileType * call my#themes#apply_theme_overrides()
 
-" update airline when the colorscheme changes
+" TODO: update airline when the colorscheme changes
 " au vimrc ColorScheme * if get(g:,'loaded_airline',0) | call airline#switch_matching_theme() | endif
 
 " apply whatever theme we're using
-exec 'colorscheme ' . g:my_theme
+" exec 'colorscheme ' . g:my_theme
+
+" colorscheme base16-ayu-dark
+" colorscheme base16-da-one-black
+" colorscheme base16-evenok-dark
+" colorscheme base16-gigavolt
+" colorscheme base16-gruber
+" colorscheme base16-helios
+" colorscheme base16-windows-95
+" colorscheme base16-windows-10
+" colorscheme base16-windows-highcontrast
+" colorscheme base16-tender
+" colorscheme base16-primer-dark
+" colorscheme base16-isotope
+" colorscheme ghdark
+" colorscheme minimalist
+
+" color settings when not using a my_theme
+if !has_key(g:, 'my_theme')
+  colorscheme ayu
+
+  " manually apply overrides
+  call my#themes#apply_theme_overrides()
+endif
+
+if has('nvim')
+  " ensure that borders show up and look consistent
+  hi clear FloatBorder | hi link FloatBorder Pmenu
+endif
+
 hi normal guibg=black
 hi clear cursorline
-" hi clear cursorlinenr
-" hi cursorlinenr guifg='#e78c45' guibg='#111111'
 " }}}
 
 " FILETYPES {{{
@@ -524,7 +619,7 @@ au vimrc BufRead,BufNewFile *.jsonl setfiletype jsonl
 au vimrc FileType json setlocal foldmethod=syntax
 
 " Ruby, etc -> indent 2 spaces
-au vimrc FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim,bash,sh,zsh,toml,json setlocal ts=2 sw=2 sts=2
+au vimrc FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim,bash,sh,zsh,toml,json,lua setlocal ts=2 sw=2 sts=2
 
 " vim commentstring: the default one doesn't include a space after the double quote
 au vimrc FileType vim setlocal commentstring=\"\ %s
@@ -616,14 +711,18 @@ let g:airline_symbols_ascii=1
 let g:airline_theme='ayu_dark'
 
 " config: section format {{{
-" section z: minimal info - current_line/num_lines:col_num
+
+" primary sections
 " let g:airline_section_a       (mode, crypt, paste, spell, iminsert)
 " let g:airline_section_b       (hunks, branch)[*]
 " let g:airline_section_c       (bufferline or filename, readonly)
 " let g:airline_section_gutter  (csv)
 " let g:airline_section_x       (tagbar, filetype, virtualenv)
 " let g:airline_section_y       (fileencoding, fileformat, 'bom', 'eol')
+
+" section z: minimal info - current_line/num_lines:col_num
 let g:airline_section_z='%#__accent_bold#%l/%L:%v%#__restore__#'
+
 " let g:airline_section_error   (ycm_error_count, syntastic-err, eclim,
 "                                languageclient_error_count)
 " let g:airline_section_warning (ycm_warning_count, syntastic-warn,
@@ -634,6 +733,7 @@ let g:airline_left_sep=''
 let g:airline_right_sep=''
 let g:airline_left_sep_alt='|'
 let g:airline_right_sep_alt='|'
+
 " }}}
 
 " custom symbols: mostly to use a halfway decent char without a patched font
@@ -674,15 +774,26 @@ let g:airline_mode_map={
 
 " extensions {{{
 " FIXME: figure out why tabline always shows, look at fern
-let g:airline_extensions=['ale', 'branch', 'searchcount', 'zoomwintab']
+let g:airline_extensions=['branch', 'searchcount', 'zoomwintab']
 
 " enabled extensions
-let g:airline#extensions#ale#enabled=1
 let g:airline#extensions#branch#enabled=1
 let g:airline#extensions#searchcount#enabled=1
 let g:airline#extensions#tabline#enabled=1
 let g:airline#extensions#tagbar#enabled=1
 let g:airline#extensions#zoomwintab#enabled=1
+
+if !has('nvim')
+  let g:airline_extensions=add(g:airline_extensions, 'ale')
+  let g:airline#extensions#ale#enabled=1
+else
+  " NOTE: we need to trick airline into thinking it's using a different plugin
+  call lsp#init()
+
+  let g:airline_extensions=add(g:airline_extensions, 'lsp')
+  let g:airline#extensions#lsp#enabled=1
+  let g:airline#extensions#lsp#show_line_numbers=0
+endif
 
 " promising extensions
 " let g:airline#extensions#wordcount#enabled=1
@@ -788,12 +899,65 @@ nn <Leader>at :ALEToggle<CR>
 let g:ale_go_revive_options='-format ndjson -config ~/.config/dotfiles/lint/revive.toml'
 let g:ale_go_gopls_options='-remote "unix;'.g:gopls_socket.'"'
 
+if has('nvim')
+  let g:ale_use_neovim_diagnostics_api=1
+  let g:ale_virtualtext_cursor='current'
+endif
+
 let g:ale_go_gopls_init_options={
+  \ 'buildFlags': ['-tags', 'smartdns,pcap'],
+  \ 'importShortcut': 'Link',
+  \ 'ui.codelenses': {
+  \   'tidy': v:false,
+  \ },
   \ 'ui.diagnostic.analyses': {
-    \ 'nilness': v:true,
-    \ 'unusedwrite': v:true,
-    \ 'unusedvariable': v:true,
-    \ 'useany': v:true,
+  \   'asmdecl': v:false,
+  \   'assign': v:false,
+  \   'atomic': v:false,
+  \   'atomicalign': v:false,
+  \   'bools': v:false,
+  \   'buildtag': v:true,
+  \   'cgocall': v:true,
+  \   'composites': v:true,
+  \   'copylocks': v:true,
+  \   'deepequalerrors': v:false,
+  \   'embed': v:false,
+  \   'errorsas': v:false,
+  \   'fieldalignment': v:false,
+  \   'httpresponse': v:false,
+  \   'ifaceassert': v:false,
+  \   'infertypeargs': v:true,
+  \   'loopclosure': v:true,
+  \   'lostcancel': v:true,
+  \   'nilfunc': v:false,
+  \   'nilness': v:true,
+  \   'printf': v:true,
+  \   'shadow': v:false,
+  \   'shift': v:true,
+  \   'simplifycompositelit': v:true,
+  \   'simplifyrange': v:true,
+  \   'simplifyslice': v:true,
+  \   'sortslice': v:false,
+  \   'stdmethods': v:true,
+  \   'stringintconv': v:false,
+  \   'structtag': v:false,
+  \   'testinggoroutine': v:true,
+  \   'tests': v:true,
+  \   'timeformat': v:false,
+  \   'unmarshal': v:false,
+  \   'unreachable': v:false,
+  \   'unsafeptr': v:false,
+  \   'unusedparams': v:false,
+  \   'unusedresult': v:false,
+  \   'unusedwrite': v:true,
+  \   'useany': v:true,
+  \   'fillreturns': v:true,
+  \   'nonewvars': v:true,
+  \   'noresultvalues': v:true,
+  \   'undeclaredname': v:true,
+  \   'unusedvariable': v:true,
+  \   'fillstruct': v:true,
+  \   'stubmethods': v:false,
   \ }
 \ }
 
@@ -809,18 +973,26 @@ let g:ale_floating_preview_popup_opts='my#ale#get_popup_opts'
 " }}}
 
 " tagbar : FIXME(figure out the full package view) {{{
+
+" by default, don't run tagbar unless it's for specific filetypes
+let b:tagbar_ignore=1
+aug vimrc-plugin-tagbar | au!
+  au BufNewFile,BufReadPost *.go let b:tagbar_ignore=0
+aug end
+
 let g:tagbar_compact=0 " 2 will show a blank line, no help
+let g:tagbar_highlight_method='nearest'
 let g:tagbar_iconchars=['▶ ', '▼ ']
+let g:tagbar_position='topleft vertical'
 let g:tagbar_show_data_type=0
-let g:tagbar_show_tag_count=0
 let g:tagbar_show_linenumbers=0
+let g:tagbar_show_tag_count=0
 let g:tagbar_show_tag_linenumbers=0
 let g:tagbar_show_visibility=0
 let g:tagbar_silent=1
 let g:tagbar_sort=1
 let g:tagbar_use_cache=0
 let g:tagbar_wrap=0
-let g:tagbar_highlight_method='nearest'
 
 let g:tagbar_type_go={
 	\ 'ctagstype': 'go',
@@ -924,6 +1096,9 @@ let g:go_fold_enable=['block', 'import', 'varconst', 'package_comment']
 let g:go_gopls_enabled=1
 let g:go_gopls_options=['-remote', 'unix;'.g:gopls_socket]
 
+" needed for some packages that get worked on
+let g:go_build_tags='smartdns pcap'
+
 " disable analyzers, ale is being used for that
 let g:go_gopls_analyses={
   \ 'asmdecl': v:false,
@@ -984,6 +1159,7 @@ let g:go_gopls_complete_unimported=v:false
 let g:go_gopls_deep_completion=v:false
 let g:go_gopls_gofumpt=v:true
 let g:go_gopls_staticcheck=v:false
+let g:go_diagnostics_level=0
 " }}}
 
 " add a little extra highlight color
@@ -1008,50 +1184,59 @@ function! s:on_filetype_go() abort
   " go uses tabs, not spaces
   setlocal noexpandtab
 
-  " keybindings {{{
-  nm <Leader>gd <Plug>(go-def)
-  nm <Leader>gD <Plug>(go-def-type)
-  nm <Leader>gi <Plug>(go-info)
-  nm <Leader>gA <Plug>(go-alternate-edit)!
-  nm <Leader>gx <Plug>(go-doc)
-  nm <Leader>gX <Plug>(go-doc-browser)
-  nm <Leader>gc <Plug>(go-callers)
-  nm <Leader>gr <Plug>(go-rename)
-  nn <Leader>gI :GoImpl<CR>
+  " keybindings (neovim uses a different plugin) {{{
+  if !has('nvim')
+    nm <Leader>gd <Plug>(go-def)
+    nm <Leader>gD <Plug>(go-def-type)
+    nm <Leader>g? :GoDecls<CR>
+    nm <Leader>g.? :GoDeclsDir<CR>
+    nm <Leader>gA <Plug>(go-alternate-edit)!
+    nm <Leader>gx <Plug>(go-doc)
+    nm <Leader>gX <Plug>(go-doc-browser)
+    nm <Leader>gc <Plug>(go-callers)
+    nm <Leader>gr <Plug>(go-rename)
+    nn <Leader>gI :GoImpl<CR>
 
-  vn <Leader>gP :GoPlay<CR>
+    vn <Leader>gP :GoPlay<CR>
 
-  " tests: all or just the function
-  nm <Leader>gT :GoTest<CR>
-  nm <Leader>gtv :GoTest -v<CR>
-  nm <Leader>gtf :GoTestFunc -v<CR>
+    " tests: all or just the function
+    nm <Leader>gT :GoTest<CR>
+    nm <Leader>gtv :GoTest -v<CR>
+    nm <Leader>gtf :GoTestFunc -v<CR>
 
-  " a way to quit a goterm buffer
-  nm <Leader>gtq :bd goterm<CR>
+    " a way to quit a goterm buffer
+    nm <Leader>gtq :bd goterm<CR>
 
-  " use special behavior for these
-  nn <Leader>gav :call go#alternate#Switch(!0, 'vsplit')<CR>
-  nn <Leader>gas :call go#alternate#Switch(!0, 'split')<CR>
-  nn <Leader>gA :GoAlternate!<CR>
+    " use special behavior for these
+    nn <Leader>gav :call go#alternate#Switch(!0, 'vsplit')<CR>
+    nn <Leader>gas :call go#alternate#Switch(!0, 'split')<CR>
+    nn <Leader>gA :GoAlternate!<CR>
 
-  " vim-go GoDef utils
-  nm <Leader>gsd <Plug>(go-def-split)
-  nm <Leader>gvd <Plug>(go-def-vertical)
-  nm <Leader>gsD <Plug>(go-def-type-split)
-  nm <Leader>gvD <Plug>(go-def-type-vertical)
+    " vim-go GoDef utils
+    nm <Leader>gsd <Plug>(go-def-split)
+    nm <Leader>gvd <Plug>(go-def-vertical)
+    nm <Leader>gsD <Plug>(go-def-type-split)
+    nm <Leader>gvD <Plug>(go-def-type-vertical)
 
-  " guru
-  nm <Leader>ggd <Plug>(go-describe)
-  nm <Leader>ggi <Plug>(go-implements)
+    " guru
+    nm <Leader>ggd <Plug>(go-describe)
+    nm <Leader>ggi <Plug>(go-implements)
 
-  " change formatting behavior
-  nm <Leader>gf0 :call my#go#set_format_mode('none')<CR>
-  nm <Leader>gfs :call my#go#set_format_mode('simple')<CR>
-  nm <Leader>gff :call my#go#set_format_mode('full')<CR>
+    " change formatting behavior
+    nm <Leader>gf0 :call my#go#set_format_mode('none')<CR>
+    nm <Leader>gfs :call my#go#set_format_mode('simple')<CR>
+    nm <Leader>gff :call my#go#set_format_mode('full')<CR>
 
-  " tagbar alternative
-  no <Leader>go :!go doc %:p:h<CR>
-  no <Leader>g0 :!go doc -all %:p:h<CR>
+    " other
+    nm <Leader>gie <Plug>(go-if-err)
+    nm <Leader>gta :GoAddTags<SPACE>
+    nm <Leader>gtr :GoRemoveTags<CR>
+    nm <Leader>gE <Plug>(go-extract)
+
+    " tagbar alternative
+    no <Leader>go :!go doc %:p:h<CR>
+    no <Leader>g0 :!go doc -all %:p:h<CR>
+  endif
   " }}}
 endfunction
 " }}}
@@ -1075,7 +1260,7 @@ let g:bling_count=2
 
 " terraform {{{
 let g:terraform_align=1
-let g:terraform_fmt_on_save=1
+let g:terraform_fmt_on_save=0
 " }}}
 
 " undotree {{{
@@ -1160,6 +1345,8 @@ aug end
 " }}}
 
 " buffergator {{{
+let g:buffergator_show_full_directory_path=0
+let g:buffergator_sort_regime='mru'
 let g:buffergator_suppress_keymaps=1
 let g:buffergator_tab_statusline=1
 let g:buffergator_window_statusline=1
@@ -1183,26 +1370,20 @@ aug end
 " search for the word under the cursor
 nn <Leader>? :Ag <C-R><C-W><CR>
 
-" let g:fzf_action = {
-"   \ 'ctrl-|': 'vsplit',
-"   \ 'ctrl--': 'split',
-" \ }
+" Agd to use Ag with a different directory
+function! s:ag_dir(bang, ...) abort
+  call fzf#vim#grep(
+    \ 'ag  --nogroup --column --color  -- ' . shellescape(join(a:000[1:])) .' ' . shellescape(a:000[0]), 1,
+    \ fzf#vim#with_preview(), a:bang)
+endfunction
 
-" let g:fzf_colors = {
-"   \ 'fg':      ['fg', 'Normal'],
-"   \ 'bg':      ['bg', 'Normal'],
-"   \ 'hl':      ['fg', 'Comment'],
-"   \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
-"   \ 'bg+':     ['bg', 'CursorLine', 'CursorColumn'],
-"   \ 'hl+':     ['fg', 'Statement'],
-"   \ 'info':    ['fg', 'PreProc'],
-"   \ 'border':  ['fg', 'Ignore'],
-"   \ 'prompt':  ['fg', 'Conditional'],
-"   \ 'pointer': ['fg', 'Exception'],
-"   \ 'marker':  ['fg', 'Keyword'],
-"   \ 'spinner': ['fg', 'Label'],
-"   \ 'header':  ['fg', 'Comment']
-" \ }
+command! -bang -nargs=* Agd call <SID>ag_dir(<bang>0, <f-args>)
+
+let g:fzf_action = {
+  \ 'ctrl-v': 'vsplit',
+  \ 'ctrl-x': 'split',
+\ }
+
 " }}}
 
 " vimwiki {{{
@@ -1263,6 +1444,49 @@ aug vimrc-plugin-vimwiki | au!
 aug end
 " }}}
 
+" dap (neovim only) {{{
+let g:dap_adapters = {'go': {'type': 'executable', 'command': 'dlv'}}
+
+let g:dap_virtual_text = v:true
+let g:dap_virtual_text_highlight = 'Comment'
+let g:dap_debugger = 'go'
+let g:dap_debugger_args = ['dap', '-l', '127.0.0.1:38697']
+let g:dap_debugger_path = 'dlv'
+let g:dap_debugger_log = v:true
+let g:dap_debugger_port = 38697
+let g:dap_virtual_text = v:true
+let g:dap_virtual_text_highlight = 'Comment'
 " }}}
+
+" }}}
+
+" neovim only: settings/modifiers
+if has('nvim')
+  aug vimrc-nvim-term | au!
+    " begin terminal with insert mode instead of normal mode. also map <ESC> locally to put back into normal
+    " mode (note it has to be buffer local otherwise it'll mess up fzf windows). also make it *VERY* apparent
+    " that we're working in a terminal window
+    au BufEnter term://* startinsert | tnoremap <buffer> <ESC> <C-\><C-N>
+
+    " turn off line numbers when using the terminal in term mode
+    au TermOpen term://* setlocal nonu nornu | startinsert | tnoremap <buffer> <ESC> <C-\><C-N>
+    au TermEnter term://* setlocal nonu nornu
+    au TermLeave term://* setlocal nu rnu
+
+    " close automatically
+    au TermClose term://* close
+
+    " make commands to make term open easier
+    command! -nargs=* Term split | terminal <args>
+    command! -nargs=* VTerm vsplit | terminal <args>
+
+    nn <Leader>ts :Term<CR>
+    nn <Leader>tv :VTerm<CR>
+  aug end
+
+  aug vimrc-nvim-fzf | au!
+    au FileType fzf tnoremap <buffer> <ESC> <C-Q>
+  aug end
+endif
 
 " vi:fdm=marker:fml=1
