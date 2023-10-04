@@ -491,6 +491,10 @@ fi
 # minikube {{{
 compinit_command minikube
 
+if [[ -f ~/.minikube-completion ]]; then
+  source ~/.minikube-completion
+fi
+
 # shorthand
 alias mk='minikube'
 

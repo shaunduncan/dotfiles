@@ -60,6 +60,9 @@ if [[ "${platform}" == "darwin" ]]; then
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
   cat ${dotfiles}/mac/homebrew.list | xargs brew install -f -q
+
+  # prefill completions
+  minikube completion zsh >! ~/.minikube-completion
 fi
 
 # linux: this assumes debian-based
