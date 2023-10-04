@@ -554,7 +554,7 @@ alias vw=vimwiki
 typeset -gU cdpath fpath path
 
 # TODO: evaluate
-source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+source $(brew --prefix zsh-autosuggestions)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
 ZSH_AUTOSUGGEST_STRATEGY=(history completion)
@@ -605,7 +605,7 @@ bindkey -M viins '^ ' autosuggest-accept # ctrl-space
 # start disabled
 # _zsh_autosuggest_disable
 
-source /usr/local/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+source $(brew --prefix zsh-history-substring-search)/share/zsh-history-substring-search/zsh-history-substring-search.zsh
 bindkey -M viins '^K' history-substring-search-up
 bindkey -M viins '^J' history-substring-search-down
 bindkey -M vicmd '^K' history-substring-search-up
