@@ -41,8 +41,8 @@ function utils.on_attach(client, bufnr)
     mapkey('n', '<leader>gil', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
 
     -- show var usage (function call shows quicklist, command is fzf)
-    mapkey('n', '<leader>gu', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
-    mapkey('n', '<leader>gu?', ':References<CR>', opts)
+    mapkey('n', '<leader>gu', ':References<CR>', opts)
+    mapkey('n', '<leader>gu?', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
 
     -- what do these do?
     mapkey('n', '<leader>gcaf', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)

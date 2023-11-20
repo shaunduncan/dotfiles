@@ -74,7 +74,7 @@
     date = format:%Y-%m-%d %H:%M
     ; excludeDecoration = remotes
 [merge]
-    conflictStyle = zdiff3
+    conflictStyle = merge
     suppressDest = true
     tool = vimdiff
 [pager]

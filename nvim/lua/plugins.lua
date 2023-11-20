@@ -21,6 +21,25 @@ require('glow').setup({
 -- }}}
 
 -- venn.nvim (diagramming) {{{
+local actions = require('diffview.actions')
+require('diffview').setup({
+  icons = {
+    folder_closed = '◆ ',
+    folder_open = '◇ ',
+  },
+  signs = {
+    fold_closed = '◆ ',
+    fold_open = '◇ ',
+  },
+  view = {
+    merge_tool = {
+      layout = 'diff3_mixed',
+    },
+  },
+})
+-- }}}
+
+-- venn.nvim (diagramming) {{{
 function _G.Toggle_venn()
   local venn_enabled = vim.inspect(vim.b.venn_enabled)
 

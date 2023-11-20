@@ -99,7 +99,7 @@ Plug 'udalov/kotlin-vim'
 " dev tools {{{
 Plug 'AndrewRadev/quickpeek.vim'
 Plug 'Konfekt/FastFold'
-Plug 'SirVer/ultisnips'
+" Plug 'SirVer/ultisnips'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 
@@ -227,6 +227,8 @@ let g:my_theme_overrides=
   \   #{group: ['SpellBad', 'SpellLocal', 'SpellCap', 'SpellRare'], attrs: 'undercurl'},
   \   #{group: ['SignColumn'], strategy: 'replace'},
   \   #{group: ['vim9Comment'], linksto: 'Error'},
+  \   #{group: ['DiffAdd'], attrs: 'reverse' },
+  \   #{group: ['DiffDelete'], linksto: 'ErrorMsg' },
   \ ]][1] +
   \ ['ale', [
   \   #{group: ['ALEErrorSign', 'ALEFloatingPreviewError', 'ALEFloatingPreviewStyleError'], from: 'ErrorMsg'},

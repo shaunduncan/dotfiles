@@ -8,5 +8,8 @@ emulate -L zsh
 [[ $OSTYPE =~ darwin ]] && typeset -gi __is_macos=1
 [[ $OSTYPE =~ linux ]] && typeset -gi __is_linux=1
 
+[[ $CPUTYPE =~ arm64 ]] && typeset -gi __is_arm64=1
+[[ $CPUTYPE =~ amd64 ]] && typeset -gi __is_amd64=1
+
 # only run once
 unfunction $0

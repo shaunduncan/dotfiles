@@ -145,6 +145,7 @@ autoload -Uz inspath  # append/prepend to $path
 autoload -Uz pushd    # wrap pushd to use MRU style dirlist
 autoload -Uz source   # wrap source to override `source ~/.zshrc`
 autoload -Uz mr       # tools for working with `glab mr`
+autoload -Uz review   # review a pull request
 autoload -Uz workon   # utility to manage git worktrees
 
 # load sysinfo data
@@ -489,11 +490,9 @@ fi
 # }}}
 
 # minikube {{{
-compinit_command minikube
 
-if [[ -f ~/.minikube-completion ]]; then
-  source ~/.minikube-completion
-fi
+# FIXME: this always yells about __minikube_type
+# compinit_command minikube
 
 # shorthand
 alias mk='minikube'
@@ -505,10 +504,13 @@ export MINIKUBE_IN_STYLE=0
 # `eval "$(minikube docker-env)` to zshrc. in my experience this was taking about 300ms on average to actually
 # complete and all it would do is export the env vars below. to hasten things, just assume these are always
 # correct and export them statically. this may not always work.
-export DOCKER_TLS_VERIFY="1"
-export DOCKER_HOST="tcp://192.168.64.11:2376"
-export DOCKER_CERT_PATH="$HOME/.minikube/certs"
-export MINIKUBE_ACTIVE_DOCKERD="minikube"
+if (( $__is_amd64 )); then
+  export DOCKER_TLS_VERIFY="1"
+  export DOCKER_HOST="tcp://192.168.105.2:2376"
+  export DOCKER_CERT_PATH="$HOME/.minikube/certs"
+  export MINIKUBE_ACTIVE_DOCKERD="minikube"
+fi
+
 export USE_GKE_GCLOUD_AUTH_PROVIDER="True"
 # }}}
 

@@ -466,6 +466,10 @@ function! my#themes#apply_theme_overrides() abort
     let l:spec=copy(cfg)
     let l:groups=remove(l:spec, 'group')
 
+    " echom 'BEFORE'
+    " echom l:groups
+    " echom l:spec
+
     if has_key(l:spec, 'from')
       " copy the colors from somewhere else
       let l:spec=extend(get(<SID>hlget(l:spec.from, v:true), 0, {}), l:spec)
@@ -505,12 +509,16 @@ function! my#themes#apply_theme_overrides() abort
             \ 'italic': v:false,
             \ 'reverse': v:false
           \ })
+          echom ''
         endif
       endif
 
       let l:spec['gui']=l:attrs
       let l:spec['cterm']=l:attrs
     endif
+
+"     echom 'AFTER'
+"     echom l:spec
 
     " what strategy are we using here? merge or replace (default merge)
     if has_key(l:spec, 'strategy')

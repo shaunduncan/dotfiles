@@ -1,0 +1,24 @@
+# vi:ft=zsh
+
+# utility to checkout a pull request branch to review it using vim diff
+
+emulate -L zsh
+
+if [[ -n $(git status -s | egrep -v '^## ') ]]; then
+  echo "must start with clean tree!"
+  return 1
+fi
+
+git checkout master
+git pull
+branch="$1"
+git branch -D "$branch"
+git checkout "$branch"
+git pull
+git merge origin/master -m 'whatevs'
+git reset --soft origin/master
+git reset
+nvim -c :DiffviewOpen
+git reset --hard
+git status -s | awk '{ print $2 }' | xargs rm
+git checkout master

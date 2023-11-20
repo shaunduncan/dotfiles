@@ -22,7 +22,7 @@ case $1 in
       ${@:2}
     ;;
 
-  # `mr review <id>`: use vim-fugitive to initiate a local merge request review
+  # `mr review <id>`: use vim diff to initiate a local merge request review
   review)
     if [[ -n $(git status --porcelain) ]]; then
       echo "must start with clean tree!"

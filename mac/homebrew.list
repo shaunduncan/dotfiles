@@ -61,7 +61,6 @@ lua@5.3
 luajit-openresty
 lynx
 mdcat
-minikube
 neofetch
 neovim
 nmap
@@ -75,15 +74,18 @@ protoc-gen-grpc-web
 pstree
 pulseaudio
 pv
+qemu
 qmk/qmk/qmk
 rainbarf
 revive
+rsync
 sevenzip
 shared-mime-info
 shellcheck
 showkey
 six
 skopeo
+socket_vmnet
 squashfs
 stern
 tcpflow
