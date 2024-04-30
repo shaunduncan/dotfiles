@@ -22,11 +22,10 @@ scrolling:
 
 # Font configuration
 font:
-  size: 10.0
+  size: 12.0
   normal:
     # triplicate a is a little heavier than b but shows up better
     family: 'Triplicate A Code'
-    # family: 'Fixedsys Excelsior 3.01'
 
   # disable italics
   bold_italic:
@@ -37,6 +36,60 @@ font:
   # the triplicate box drawing characters don't look right for double line borders
   # so just use the builtin font
   builtin_box_drawing: true
+
+  # unicode fallbacks (no bullshit color emoji)
+  #
+  # these are grouped by the font providing the glyph. for reference:
+  #
+  # U+00A4  = currency sign
+  # U+2116  = numero sign
+  # U+2205  = null / empty set
+  # U+229E  = squared plus
+  # U+24DE  = lowercase 'o' in circle
+  # U+25D0  = circle left half black
+  # U+25E7  = square left half black
+  # U+2699  = gear
+  # U+26A0  = warning sign
+  # U+2752  = upper right shadow square
+  # U+2982  = z notation type colon
+  # U+2BBB  = black on white square
+  # U+1F13E = uppercase 'o' in square
+  # U+1F4A1 = light bulb
+  # U+1F4C4 = page facing up
+  # U+1F4E6 = package
+  # U+1F510 = lock with key
+  # U+1F511 = key
+  # U+1F512 = lock
+  # U+1F513 = open lock
+  # U+1F6E0 = hammer and wrench
+  codepoint_substitutions:
+    - font: Segoe UI Symbol
+      codepoints:
+        - U+1F4A1
+        - U+1F4C4
+        - U+1F510
+        - U+1F511
+        - U+1F512
+        - U+1F513
+    - font: Unifont
+      codepoints:
+        - U+00A4
+        - U+2982
+        - U+2BBB
+    - font: Symbola
+      codepoints:
+        - U+2116
+        - U+2205
+        - U+229E
+        - U+24DE
+        - U+25D0
+        - U+25E7
+        - U+2699
+        - U+26A0
+        - U+2752
+        - U+1F13E
+        - U+1F4E6
+        - U+1F6E0
 
 draw_bold_text_with_bright_colors: true
 

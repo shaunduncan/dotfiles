@@ -34,8 +34,8 @@ ctrl + alt - n : yabai -m space --create && \
 ctrl + alt + shift - d : yabai -m space --destroy
 
 # moving spaces
-ctrl + alt - h : yabai -m space --focus prev
-ctrl + alt - l : yabai -m space --focus next
+ctrl + alt - m : yabai -m window --display recent --focus
+
 ctrl + alt - left : yabai -m space --focus prev
 ctrl + alt - right : yabai -m space --focus next
 

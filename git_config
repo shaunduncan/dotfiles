@@ -106,7 +106,7 @@
 [remote]
 	pushDefault = origin
 [status]
-    branch = true
+    branch = false
     showStash = true
     showUntrackedFiles = all
     showIncludeUntracked = true

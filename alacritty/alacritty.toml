@@ -1,0 +1,219 @@
+live_config_reload = true
+
+[bell]
+duration = 0
+
+[colors]
+draw_bold_text_with_bright_colors = true
+
+[colors.bright]
+black = "#acb6bf"
+red = "#ff3333"
+green = "#aad94c"
+yellow = "#ffb454"
+blue = "#36a3d9"
+magenta = "#e799ff"
+cyan = "#95e6cb"
+white = "#ffffff"
+
+[colors.dim]
+black = "#000000"
+red = "#ff3333"
+green = "#aad94c"
+yellow = "#ffb454"
+blue = "#36a3d9"
+magenta = "#e799ff"
+cyan = "#95e6cb"
+white = "#ffffff"
+
+[colors.normal]
+black = "#000000"
+red = "#ff3333"
+green = "#aad94c"
+yellow = "#ffb454"
+blue = "#36a3d9"
+magenta = "#e799ff"
+cyan = "#95e6cb"
+white = "#ffffff"
+
+[colors.primary]
+background = "#000000"
+foreground = "#ffffff"
+
+[colors.selection]
+background = "CellForeground"
+text = "CellBackground"
+
+[cursor]
+blink_interval = 250
+thickness = 0.5
+unfocused_hollow = true
+
+[cursor.style]
+blinking = "Always"
+shape = "Block"
+
+[env]
+TERM = "alacritty"
+
+[font]
+builtin_box_drawing = true
+size = 12.0
+
+# unicode fallbacks (no bullshit color emoji)
+#
+# these are grouped by the font providing the glyph. for reference:
+#
+# U+00A4  = currency sign
+# U+2116  = numero sign
+# U+2205  = null / empty set
+# U+229E  = squared plus
+# U+24DE  = lowercase 'o' in circle
+# U+25D0  = circle left half black
+# U+25E7  = square left half black
+# U+2699  = gear
+# U+26A0  = warning sign
+# U+2752  = upper right shadow square
+# U+2982  = z notation type colon
+# U+2BBB  = black on white square
+# U+1F13E = uppercase 'o' in square
+# U+1F4A1 = light bulb
+# U+1F4C4 = page facing up
+# U+1F4E6 = package
+# U+1F510 = lock with key
+# U+1F511 = key
+# U+1F512 = lock
+# U+1F513 = open lock
+# U+1F517 = link symbol
+# U+1F6E0 = hammer and wrench
+[[font.codepoint_substitutions]]
+codepoints = ["U+00A4", "U+2982", "U+2BBB"]
+font = "Unifont"
+
+[[font.codepoint_substitutions]]
+codepoints = ["U+1F510", "U+1F511", "U+1F512", "U+1F513", "U+1F517", "U+1F4C4", "U+1F4A1"]
+font = "Segoe UI Symbol"
+
+[[font.codepoint_substitutions]]
+codepoints = ["U+2116", "U+2205", "U+229E", "U+24DE", "U+25D0", "U+25E7", "U+2699", "U+26A0", "U+2752", "U+1F13E", "U+1F4E6", "U+1F6E0"]
+font = "Symbola"
+
+[font.bold_italic]
+style = "Bold"
+
+[font.italic]
+style = "Regular"
+
+[font.normal]
+family = "Triplicate A Code"
+
+[[hints.enabled]]
+command = "open"
+post_processing = true
+regex = "(mailto:|https:|http:|file:|git:|ssh:|ftp:)[^\u0000-\u001F\u007F-<>\"\\s{-}\\^⟨⟩`]+"
+
+[hints.enabled.binding]
+key = "U"
+mods = "Control|Shift"
+
+[hints.enabled.mouse]
+enabled = true
+mods = "Command"
+
+[[keyboard.bindings]]
+chars = "\u0001\u001BT"
+key = "T"
+mods = "Alt|Shift"
+
+[[keyboard.bindings]]
+chars = "\u0001\u001BH"
+key = "H"
+mods = "Alt|Shift"
+
+[[keyboard.bindings]]
+chars = "\u0001\u001BL"
+key = "L"
+mods = "Alt|Shift"
+
+[[keyboard.bindings]]
+chars = "\u0001\u001BN"
+key = "N"
+mods = "Alt|Shift"
+
+[[keyboard.bindings]]
+action = "Quit"
+key = "Q"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Quit"
+key = "W"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "ReceiveChar"
+key = "Space"
+mods = "Control"
+
+[[keyboard.bindings]]
+chars = "\u001BM"
+key = "Return"
+mods = "Control"
+
+[[keyboard.bindings]]
+action = "CreateNewWindow"
+key = "N"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "ToggleFullscreen"
+key = "F"
+mods = "Command|Control"
+
+[[keyboard.bindings]]
+action = "ResetFontSize"
+key = "Key0"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "IncreaseFontSize"
+key = "Equals"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "IncreaseFontSize"
+key = "Plus"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "DecreaseFontSize"
+key = "Minus"
+mods = "Command"
+
+[mouse]
+hide_when_typing = false
+
+[[mouse.bindings]]
+action = "PasteSelection"
+mouse = "Middle"
+
+[scrolling]
+history = 10000
+
+[selection]
+save_to_clipboard = false
+semantic_escape_chars = ",│║┃`|:\"' ()[]{}<>\t="
+
+[shell]
+args = ["--login"]
+program = "/opt/homebrew/bin/zsh"
+
+[window]
+decorations = "none"
+dynamic_padding = false
+dynamic_title = true
+opacity = 1.0
+
+[window.padding]
+x = 1
+y = 1

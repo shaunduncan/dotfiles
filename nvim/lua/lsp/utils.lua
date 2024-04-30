@@ -23,16 +23,16 @@ function utils.on_attach(client, bufnr)
     mapkey('n', '<leader>gsD', ':sp<CR>' .. goto_typedef, opts)
     mapkey('n', '<leader>gvD', ':vsp<CR>' .. goto_typedef, opts)
 
-    -- Lspsaga peek_definition and peek_type_definition?
-
     -- info (godoc)
-    mapkey('n', '<leader>gx', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    mapkey('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+    -- mapkey('n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
+    mapkey('n', 'K', ':Lspsaga hover_doc<CR>', opts)
 
     -- TODO: color HoverNormal and HoverBorder
 
     -- lspsaga specific
-    mapkey('n', '<leader>lx', ':Lspsaga hover_doc<CR>', opts)
+    mapkey('n', '<leader>gpd', ':Lspsaga peek_definition<CR>', opts)
+    mapkey('n', '<leader>gpD', ':Lspsaga peek_type_definition<CR>', opts)
+    mapkey('n', '<leader>go', ':Lspsaga outline<CR>', opts)
 
     mapkey('n', '<leader>gr', '<cmd>lua vim.lsp.buf.rename()<CR>', opts)
 
@@ -41,26 +41,24 @@ function utils.on_attach(client, bufnr)
     mapkey('n', '<leader>gil', '<cmd>lua vim.lsp.buf.implementation()<CR>', opts)
 
     -- show var usage (function call shows quicklist, command is fzf)
-    mapkey('n', '<leader>gu', ':References<CR>', opts)
-    mapkey('n', '<leader>gu?', '<cmd>lua vim.lsp.buf.references()<CR>', opts)
+    mapkey('n', '<leader>gu', ':Lspsaga finder<CR>', opts)
+    mapkey('n', '<leader>gU', ':References<CR>', opts)
 
-    -- what do these do?
-    mapkey('n', '<leader>gcaf', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
-    mapkey('n', '<leader>gcac', ':CodeActions<CR>', opts)
+    -- code actions
+    mapkey('n', '<leader>gca', ':CodeActions<CR>', opts)
+    mapkey('n', '<leader>gcA', '<cmd>lua vim.lsp.buf.code_action()<CR>', opts)
 
-    -- loclist shows current file, all shows any in workspace (in fzf)
-    mapkey('n', '<leader>gp', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
-    mapkey('n', '<leader>gpa', ':DiagnosticsAll<CR>', opts)
+    -- show diagnostics
+    mapkey('n', '<leader>gx', ':Lspsaga show_buf_diagnostics<CR>', opts)
+    mapkey('n', '<leader>gxa', ':Lspsaga show_workspace_diagnostics<CR>', opts)
+    mapkey('n', '<leader>gxl', '<cmd>lua vim.diagnostic.setloclist()<CR>', opts)
 
     -- popup function signature when requested
     mapkey('i', '<C-H>', '<cmd>lua vim.lsp.buf.signature_help()<CR>', opts)
 
     -- callers/callees
-    mapkey('n', '<leader>gci', '<cmd>lua vim.lsp.buf.incoming_calls()<CR>', opts)
-    mapkey('n', '<leader>gco', '<cmd>lua vim.lsp.buf.outgoing_calls()<CR>', opts)
-
-    mapkey('n', '<leader>gCi', ':Lspsaga incoming_calls<CR>', opts)
-    mapkey('n', '<leader>gCo', ':Lspsaga outgoing_calls<CR>', opts)
+    mapkey('n', '<leader>gci', ':Lspsaga incoming_calls<CR>', opts)
+    mapkey('n', '<leader>gco', ':Lspsaga outgoing_calls<CR>', opts)
 
     -- workspace --
     mapkey('n', '<leader>gwa', '<cmd>lua vim.lsp.buf.add_workspace_folder()<CR>', opts)

@@ -41,6 +41,8 @@ export ARCHFLAGS="-arch $CPUTYPE"
 # configure less as the preferred pager and set options
 export PAGER=less
 
+export FZF_DEFAULT_OPTS="--exact"
+
 # options:
 # -F: don't page if the whole buffer fits on screen
 # -R: support ansi color sequences and osc 8 hyperlinks

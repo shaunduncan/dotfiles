@@ -72,10 +72,40 @@ shlvl() {
 # utility for showing status of all git work trees
 wt-stat() {
   for l in $(git worktree list|awk '{print $1}'); do
-    echo $l
-    echo ${(l:${#l}::-:)}
-    git --work-tree=$l --git-dir=$l/.git status --short | tail -n +2
-    echo ""
+    if [[ -z "$(git --work-tree=$l --git-dir=$l/.git status --porcelain)" ]]; then
+      echo -n "\033[38;5;2m✔\033[0m ${l}\n"
+    else
+      echo -n "\033[38;5;1m✘\033[0m ${l}\n"
+    fi
+  done
+}
+
+wt-clean() {
+  for l in $(git worktree list|awk '{print $1}'); do
+    name=$(echo $l | awk -F '/' '{print $NF}')
+
+    if [[ -z "$(git --work-tree=$l --git-dir=$l/.git status --porcelain)" ]]; then
+      vared -p "Delete worktree ${name}? " -c do_delete
+
+      if [[ "${do_delete}" == "y" ]]; then
+        git worktree remove $l
+      elif [[ "${do_delete}" == "n" ]]; then
+      else
+        echo "invalid input: ${do_delete}"
+      fi
+    else
+      vared -p "Worktree ${name} has unstaged changes, delete anyway? " -c do_delete
+
+      if [[ "${do_delete}" == "y" ]]; then
+        git worktree remove -f $l
+      elif [[ "${do_delete}" == "n" ]]; then
+        echo "leaving"
+      else
+        echo "invalid input: ${do_delete}"
+      fi
+    fi
+
+    unset do_delete
   done
 }
 

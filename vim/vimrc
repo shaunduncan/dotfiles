@@ -56,9 +56,10 @@ endf
 " inoremap <c-l> <right><c-x><c-f>
 
 " vim-plug auto-install {{{
-let data_dir = has('nvim') ? stdpath('config') . '/' : '~/.vim'
-if empty(glob(data_dir . '/autoload/plug.vim'))
-  silent exec '!curl -fLo '.data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
+let s:data_dir = has('nvim') ? stdpath('config') . '/' : '~/.vim'
+
+if empty(glob(s:data_dir . '/autoload/plug.vim'))
+  silent exec '!curl -fLo '.s:data_dir.'/autoload/plug.vim --create-dirs  https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim'
   au VimEnter * PlugInstall --sync | source $MYVIMRC
 endif
 
@@ -68,7 +69,8 @@ endif
 " }}}
 
 " PLUGINS {{{
-call plug#begin('~/.vim/plugged')
+let s:plugin_dir = has('nvim') ? stdpath('data') . '/plugged' : '~/.vim/plugged'
+call plug#begin(s:plugin_dir)
 
 " my own stuff
 Plug 'shaunduncan/dotfiles', {
@@ -97,9 +99,7 @@ Plug 'udalov/kotlin-vim'
 " }}}
 
 " dev tools {{{
-Plug 'AndrewRadev/quickpeek.vim'
 Plug 'Konfekt/FastFold'
-" Plug 'SirVer/ultisnips'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
 
@@ -114,6 +114,7 @@ Plug 'junegunn/gv.vim'
 
 " some personalizations and custom mods
 Plug 'shaunduncan/tagbar'  " preservim/tagbar
+Plug 'SirVer/ultisnips'
 
 " neovim specific {{{
 
@@ -122,19 +123,23 @@ if has('nvim')
   Plug 'nvim-lua/plenary.nvim'
 
   " debugging
-  " Plug 'mfussenegger/nvim-dap'
-  " Plug 'rcarriga/nvim-dap-ui'
-  " Plug 'leoluz/nvim-dap-go', { 'for': 'go' }
+  Plug 'mfussenegger/nvim-dap'
+  Plug 'rcarriga/nvim-dap-ui'
+  Plug 'nvim-neotest/nvim-nio'
+  Plug 'leoluz/nvim-dap-go', { 'for': 'go' }
 
   " lsp
-  Plug 'nvim-treesitter/nvim-treesitter'
+  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  Plug 'nvim-treesitter/nvim-treesitter-textobjects'
   Plug 'neovim/nvim-lspconfig'
   Plug 'williamboman/mason.nvim'
   Plug 'williamboman/mason-lspconfig.nvim'
   Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
+  Plug 'weilbith/nvim-code-action-menu'
+  Plug 'kosayoda/nvim-lightbulb'
 
-  " golang
-  Plug 'ray-x/go.nvim'
+  " golang (using my fork for now)
+  Plug 'shaunduncan/go.nvim'
   Plug 'ray-x/guihua.lua'
 
   " lsp symbols in fzf
@@ -146,6 +151,9 @@ if has('nvim')
   " Plug 'hrsh7th/cmp-path'
   " Plug 'hrsh7th/cmp-nvim-lua'
   " Plug 'hrsh7th/nvim-cmp'
+
+  " snips
+  " Plug 'L3MON4D3/LuaSnip'
 
   " git
   Plug 'sindrets/diffview.nvim'
@@ -179,9 +187,15 @@ Plug 'liuchengxu/vim-which-key'
 Plug 'mbbill/undotree'
 Plug 'skywind3000/asyncrun.vim'
 Plug 'troydm/zoomwintab.vim'
-Plug 'vim-airline/vim-airline'
-Plug 'vim-airline/vim-airline-themes'
 Plug 'zhimsel/vim-stay'
+
+if has('nvim')
+  Plug 'nvim-lualine/lualine.nvim'
+else
+  Plug 'vim-airline/vim-airline'
+  Plug 'vim-airline/vim-airline-themes'
+  Plug 'ayu-theme/ayu-vim-airline'
+endif
 " }}}
 
 " other utils {{{
@@ -204,7 +218,6 @@ Plug 'vimwiki/vimwiki'
 Plug 'vv9k/vim-github-dark'
 Plug 'dikiaap/minimalist'
 Plug 'ayu-theme/ayu-vim'
-Plug 'ayu-theme/ayu-vim-airline'
 
 call plug#end()
 " }}}
@@ -222,13 +235,15 @@ let g:my_theme_overrides=
   \   #{group: ['Error'], guifg: 'black', ctermfg: 'black'},
   \   #{group: ['ErrorMsg'], from: 'Error', attrs: 'reverse', strategy: 'replace'},
   \   #{group: ['Folded', 'FoldColumn'], from: 'SpellRare', guifg: 'Cyan', guibg: 'NONE', ctermbg: 'NONE', attrs: 'NONE', strategy: 'replace'},
-  \   #{group: ['IncSearch', 'MatchParen'], linksto: 'Search'},
+  \   #{group: ['IncSearch'], linksto: 'Search' },
+  \   #{group: ['MatchParen'], guifg: 'Magenta', strategy: 'replace' },
   \   #{group: ['Italic'], attrs: 'italic'},
   \   #{group: ['SpellBad', 'SpellLocal', 'SpellCap', 'SpellRare'], attrs: 'undercurl'},
   \   #{group: ['SignColumn'], strategy: 'replace'},
   \   #{group: ['vim9Comment'], linksto: 'Error'},
   \   #{group: ['DiffAdd'], attrs: 'reverse' },
   \   #{group: ['DiffDelete'], linksto: 'ErrorMsg' },
+  \   #{group: ['Pmenu'], guifg: '#ffffff', guibg: '#0f0f0f', strategy: 'replace'},
   \ ]][1] +
   \ ['ale', [
   \   #{group: ['ALEErrorSign', 'ALEFloatingPreviewError', 'ALEFloatingPreviewStyleError'], from: 'ErrorMsg'},
@@ -243,6 +258,9 @@ let g:my_theme_overrides=
   \ ]][1] +
   \ ['vimwiki', [
   \   #{group: ['VimwikiCheckBoxDone'], from: 'Comment', attrs: 'italic,strikethrough'},
+  \ ]][1] +
+  \ ['lsp-lightbulb', [
+  \   #{group: ['LightBulbSign', 'LightBulbVirtualText', 'LightBulbFloat'], guifg: 'White', guibg: 'LightGreen', strategy: 'replace'},
   \ ]][1]
 
 let g:my_theme_sync_fold_color=0
@@ -316,7 +334,11 @@ set cursorline nocursorcolumn
 
 " prefer terminal-only modes
 set guioptions-=T
-set mouse=c
+set mouse=
+noremap <up> <nop>
+noremap <down> <nop>
+inoremap <up> <nop>
+inoremap <down> <nop>
 
 " for line wraps if we turn off wrapping, prefix with something
 let &showbreak='❯ '
@@ -512,17 +534,6 @@ function! s:toggle_diff() abort
     exec 'Gvdiffsplit!'
   endif
 endfunction
-
-no <Leader>dd :call <SID>toggle_diff()<CR>
-" FIXME: sort out how this should work
-" au vimrc OptionSet diff {
-"   exec (v:option_new == '1' ? 'no' : 'nun') . ' <buffer> <Leader>d>' . (v:option_new == '1' ? ' :diffg //3<CR>' : '')
-"   exec (v:option_new == '1' ? 'no' : 'nun') . ' <buffer> <Leader>d<' . (v:option_new == '1' ? ' :diffg //2<CR>' : '')
-"   exec (v:option_new == '1' ? 'no' : 'nun') . ' <buffer> <Leader>dn' . (v:option_new == '1' ? ' :cnext<CR>' : '')
-"   exec (v:option_new == '1' ? 'no' : 'nun') . ' <buffer> <Leader>dp' . (v:option_new == '1' ? ' :cprevious<CR>' : '')
-"   exec (v:option_new == '1' ? 'no' : 'nun') . ' <buffer> <Leader>dm' . (v:option_new == '1' ? ' :cclose<CR>:G mergetool<CR>' : '')
-" }
-
 " }}}
 
 " when you want to adjust the tabs without remembering the commands
@@ -704,157 +715,158 @@ au vimrc FileType go setlocal foldmethod=syntax
 " PLUGIN SETTINGS {{{
 
 " airline {{{
-" i don't use a patched font (nor do i want to)
-let g:airline_powerline_fonts=0
-let g:airline_symbols_ascii=1
-
-" theme
-" let g:airline_theme=g:my_theme
-let g:airline_theme='ayu_dark'
-
-" config: section format {{{
-
-" primary sections
-" let g:airline_section_a       (mode, crypt, paste, spell, iminsert)
-" let g:airline_section_b       (hunks, branch)[*]
-" let g:airline_section_c       (bufferline or filename, readonly)
-" let g:airline_section_gutter  (csv)
-" let g:airline_section_x       (tagbar, filetype, virtualenv)
-" let g:airline_section_y       (fileencoding, fileformat, 'bom', 'eol')
-
-" section z: minimal info - current_line/num_lines:col_num
-let g:airline_section_z='%#__accent_bold#%l/%L:%v%#__restore__#'
-
-" let g:airline_section_error   (ycm_error_count, syntastic-err, eclim,
-"                                languageclient_error_count)
-" let g:airline_section_warning (ycm_warning_count, syntastic-warn,
-"                                languageclient_warning_count, whitespace)
-
-" section separators: i want simple boxes
-let g:airline_left_sep=''
-let g:airline_right_sep=''
-let g:airline_left_sep_alt='|'
-let g:airline_right_sep_alt='|'
-
-" }}}
-
-" custom symbols: mostly to use a halfway decent char without a patched font
-if !exists('g:airline_symbols')
-  let g:airline_symbols={}
-endif
-let g:airline_symbols.branch='⎇ '
-
-" speedup load times
-let g:airline_highlighting_cache=1
-
-" disable modified detection and hide things for inactive windows
-let g:airline_detect_modified=0
-let g:airline_inactive_collapse=1
-
-" don't show file encoding - it's wasted space
-let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
-
-" show abbreviated mode names instead of the full string
-" see :help mode()
-let g:airline_mode_map_codes=1
-let g:airline_mode_map={
-  \ '__' : '--',
-  \ 'n'  : 'N',
-  \ 'i'  : 'I',
-  \ 'R'  : 'R',
-  \ 'c'  : 'C',
-  \ 'v'  : 'V',
-  \ 'V'  : 'V-L',
-  \ '' : 'V-B',
-  \ 's'  : 'S',
-  \ 'S'  : 'S-L',
-  \ '' : 'S-B',
-  \ 't'  : 'T',
-  \ 'r'  : 'P',
-  \ 'rm' : 'P-M',
-\ }
-
-" extensions {{{
-" FIXME: figure out why tabline always shows, look at fern
-let g:airline_extensions=['branch', 'searchcount', 'zoomwintab']
-
-" enabled extensions
-let g:airline#extensions#branch#enabled=1
-let g:airline#extensions#searchcount#enabled=1
-let g:airline#extensions#tabline#enabled=1
-let g:airline#extensions#tagbar#enabled=1
-let g:airline#extensions#zoomwintab#enabled=1
-
 if !has('nvim')
-  let g:airline_extensions=add(g:airline_extensions, 'ale')
-  let g:airline#extensions#ale#enabled=1
-else
-  " NOTE: we need to trick airline into thinking it's using a different plugin
-  call lsp#init()
+  " i don't use a patched font (nor do i want to)
+  let g:airline_powerline_fonts=0
+  let g:airline_symbols_ascii=1
 
-  let g:airline_extensions=add(g:airline_extensions, 'lsp')
-  let g:airline#extensions#lsp#enabled=1
-  let g:airline#extensions#lsp#show_line_numbers=0
+  " theme
+  " let g:airline_theme=g:my_theme
+  let g:airline_theme='ayu_dark'
+
+  " config: section format {{{
+
+  " primary sections
+  " let g:airline_section_a       (mode, crypt, paste, spell, iminsert)
+  " let g:airline_section_b       (hunks, branch)[*]
+  " let g:airline_section_c       (bufferline or filename, readonly)
+  " let g:airline_section_gutter  (csv)
+  " let g:airline_section_x       (tagbar, filetype, virtualenv)
+  " let g:airline_section_y       (fileencoding, fileformat, 'bom', 'eol')
+
+  " section z: minimal info - current_line/num_lines:col_num
+  let g:airline_section_z='%#__accent_bold#%l/%L:%v%#__restore__#'
+
+  " let g:airline_section_error   (ycm_error_count, syntastic-err, eclim,
+  "                                languageclient_error_count)
+  " let g:airline_section_warning (ycm_warning_count, syntastic-warn,
+  "                                languageclient_warning_count, whitespace)
+
+  " section separators: i want simple boxes
+  let g:airline_left_sep=''
+  let g:airline_right_sep=''
+  let g:airline_left_sep_alt='|'
+  let g:airline_right_sep_alt='|'
+
+  " }}}
+
+  " custom symbols: mostly to use a halfway decent char without a patched font
+  if !exists('g:airline_symbols')
+    let g:airline_symbols={}
+  endif
+  let g:airline_symbols.branch='⎇ '
+
+  " speedup load times
+  let g:airline_highlighting_cache=1
+
+  " disable modified detection and hide things for inactive windows
+  let g:airline_detect_modified=0
+  let g:airline_inactive_collapse=1
+
+  " don't show file encoding - it's wasted space
+  let g:airline#parts#ffenc#skip_expected_string='utf-8[unix]'
+
+  " show abbreviated mode names instead of the full string
+  " see :help mode()
+  let g:airline_mode_map_codes=1
+  let g:airline_mode_map={
+    \ '__' : '--',
+    \ 'n'  : 'N',
+    \ 'i'  : 'I',
+    \ 'R'  : 'R',
+    \ 'c'  : 'C',
+    \ 'v'  : 'V',
+    \ 'V'  : 'V-L',
+    \ '' : 'V-B',
+    \ 's'  : 'S',
+    \ 'S'  : 'S-L',
+    \ '' : 'S-B',
+    \ 't'  : 'T',
+    \ 'r'  : 'P',
+    \ 'rm' : 'P-M',
+  \ }
+
+  " extensions {{{
+  " FIXME: figure out why tabline always shows, look at fern
+  let g:airline_extensions=['branch', 'searchcount', 'zoomwintab']
+
+  " enabled extensions
+  let g:airline#extensions#branch#enabled=1
+  let g:airline#extensions#searchcount#enabled=1
+  let g:airline#extensions#tabline#enabled=1
+  let g:airline#extensions#tagbar#enabled=1
+  let g:airline#extensions#zoomwintab#enabled=1
+
+  if !has('nvim')
+    let g:airline_extensions=add(g:airline_extensions, 'ale')
+    let g:airline#extensions#ale#enabled=1
+  else
+    " NOTE: we need to trick airline into thinking it's using a different plugin
+    call lsp#init()
+
+    let g:airline_extensions=add(g:airline_extensions, 'lsp')
+    let g:airline#extensions#lsp#enabled=1
+    let g:airline#extensions#lsp#show_line_numbers=0
+  endif
+
+  " promising extensions
+  " let g:airline#extensions#wordcount#enabled=1
+  " let g:airline#extensions#flog#enabled=1
+  " let g:airline#extensions#fern#enabled=1
+
+  " config: airline-tabline {{{
+  let g:airline#extensions#tabline#show_buffers=1
+  let g:airline#extensions#tabline#show_tabs=1
+  let g:airline#extensions#tabline#show_splits=0
+
+  let g:airline#extensions#tabline#tab_min_count=0
+  let g:airline#extensions#tabline#buffer_min_count=0
+
+  let g:airline#extensions#tabline#show_tab_count=2
+  let g:airline#extensions#tabline#exclude_preview=1
+
+  let g:airline#extensions#tabline#show_tab_nr=1
+  let g:airline#extensions#tabline#ctrlspace_show_tab_nr=1
+  let g:airline#extensions#tabline#tab_nr_type=1
+  let g:airline#extensions#tabline#tabnr_formatter='tabnr'
+
+  let g:airline#extensions#tabline#show_tab_type=0
+
+  let g:airline#extensions#tabline#buf_label_first=1
+  let g:airline#extensions#tabline#buffers_label='B'
+  let g:airline#extensions#tabline#tabs_label='T'
+  let g:airline#extensions#tabline#formatter='unique_tail_improved'
+  let g:airline#extensions#tabline#show_close_button=0
+
+  let g:airline#extensions#tabline#buffer_nr_show=1
+  let g:airline#extensions#tabline#buffer_nr_format='%s:'
+  " let g:airline#extensions#tabline#fnamemod = ':p:.'
+
+  " }}}
+
+  " config: airline-branch {{{
+  " abbrev commit without dirt/untracked checks
+  let g:airline#extensions#branch#vcs_checks=[]
+  let g:airline#extensions#branch#sha1_len=8
+  " }}}
+
+  " config: airline-tagbar {{{
+  " mirror settings for tagbar
+  let g:airline#extensions#tagbar#flags='f'
+  let g:airline#extensions#tagbar#searchmethod='nearest'
+  " }}}
+
+  " config: airline-zoomwintab {{{
+  " only show a marker for zoomed, make it consistent with tmux
+  let g:airline#extensions#zoomwintab#status_zoomed_in = '+++'
+  " }}}
+
+  " config: airline-ale {{{
+  let g:airline#extensions#ale#show_line_numbers=0
+  " }}}
+
+  " }}}
 endif
-
-" promising extensions
-" let g:airline#extensions#wordcount#enabled=1
-" let g:airline#extensions#flog#enabled=1
-" let g:airline#extensions#fern#enabled=1
-
-" config: airline-tabline {{{
-let g:airline#extensions#tabline#show_buffers=1
-let g:airline#extensions#tabline#show_tabs=1
-let g:airline#extensions#tabline#show_splits=0
-
-let g:airline#extensions#tabline#tab_min_count=0
-let g:airline#extensions#tabline#buffer_min_count=0
-
-let g:airline#extensions#tabline#show_tab_count=2
-let g:airline#extensions#tabline#exclude_preview=1
-
-let g:airline#extensions#tabline#show_tab_nr=1
-let g:airline#extensions#tabline#ctrlspace_show_tab_nr=1
-let g:airline#extensions#tabline#tab_nr_type=1
-let g:airline#extensions#tabline#tabnr_formatter='tabnr'
-
-let g:airline#extensions#tabline#show_tab_type=0
-
-let g:airline#extensions#tabline#buf_label_first=1
-let g:airline#extensions#tabline#buffers_label='B'
-let g:airline#extensions#tabline#tabs_label='T'
-let g:airline#extensions#tabline#formatter='unique_tail_improved'
-let g:airline#extensions#tabline#show_close_button=0
-
-let g:airline#extensions#tabline#buffer_nr_show=1
-let g:airline#extensions#tabline#buffer_nr_format='%s:'
-" let g:airline#extensions#tabline#fnamemod = ':p:.'
-
-" }}}
-
-" config: airline-branch {{{
-" abbrev commit without dirt/untracked checks
-let g:airline#extensions#branch#vcs_checks=[]
-let g:airline#extensions#branch#sha1_len=8
-" }}}
-
-" config: airline-tagbar {{{
-" mirror settings for tagbar
-let g:airline#extensions#tagbar#flags='f'
-let g:airline#extensions#tagbar#searchmethod='nearest'
-" }}}
-
-" config: airline-zoomwintab {{{
-" only show a marker for zoomed, make it consistent with tmux
-let g:airline#extensions#zoomwintab#status_zoomed_in = '+++'
-" }}}
-
-" config: airline-ale {{{
-let g:airline#extensions#ale#show_line_numbers=0
-" }}}
-
-" }}}
-
 " }}}
 
 " ale {{{
@@ -907,7 +919,7 @@ if has('nvim')
 endif
 
 let g:ale_go_gopls_init_options={
-  \ 'buildFlags': ['-tags', 'smartdns,pcap'],
+  \ 'buildFlags': ['-tags', 'smartdns,pcap,kafka'],
   \ 'importShortcut': 'Link',
   \ 'ui.codelenses': {
   \   'tidy': v:false,
@@ -1099,7 +1111,7 @@ let g:go_gopls_enabled=1
 let g:go_gopls_options=['-remote', 'unix;'.g:gopls_socket]
 
 " needed for some packages that get worked on
-let g:go_build_tags='smartdns pcap'
+let g:go_build_tags='smartdns,pcap,kafka'
 
 " disable analyzers, ale is being used for that
 let g:go_gopls_analyses={
@@ -1246,7 +1258,7 @@ endfunction
 " autocmd group: vim-go shortcuts and settings {{{
 aug vimrc-plugin-vimgo | au!
   au FileType go call <SID>on_filetype_go()
-  " au BufEnter *.go
+  " au BufNewFile *.go GoNew
 aug end
 " }}}
 " }}}
@@ -1314,15 +1326,19 @@ vn <silent> <Leader> :WhichKeyVisual '<Space>'<CR>
 nn <silent> <Leader>+ :ZoomWinTabToggle<CR>
 " }}}
 
-" quickpeek.vim {{{
-nn <Leader>qp :QuickpeekToggle<CR>
-" }}}
-
 " ultisnips {{{
 let g:UltiSnipsEditSplit='vertical'
 
 " <c-space> is equivalent to <nul>, at least on mac
-let g:UltiSnipsExpandTrigger='<nul>'
+let g:UltiSnipsExpandTrigger='<C-Space>'
+
+let g:loaded_ruby_provider = 0
+let g:loaded_perl_provider = 0
+let g:loaded_node_provider = 0
+" }}}
+
+" luasnip {{{
+" imap <silent><expr> <C-Space> luasnip#expand_or_jumpable() ? '<Plug>luasnip-expand-or-jump' : '<C-Space>' 
 " }}}
 
 " vim-markdown {{{
@@ -1369,22 +1385,50 @@ aug end
 " }}}
 
 " fzf {{{
-" search for the word under the cursor
-nn <Leader>? :Ag <C-R><C-W><CR>
+nn <Leader>? :Ag<CR>
 
-" Agd to use Ag with a different directory
-function! s:ag_dir(bang, ...) abort
-  call fzf#vim#grep(
-    \ 'ag  --nogroup --column --color  -- ' . shellescape(join(a:000[1:])) .' ' . shellescape(a:000[0]), 1,
-    \ fzf#vim#with_preview(), a:bang)
+function! s:tmux_scratch() abort
+  call system("tmux if-shell '#{==:#{session_name},scratch}' \"detach-client\" \"display-popup -xC -yC -w 80\% -h 80\% -E 'tmux new-session -A -s scratch\"")
 endfunction
 
-command! -bang -nargs=* Agd call <SID>ag_dir(<bang>0, <f-args>)
+nn <silent> <Leader>t :call <SID>tmux_scratch()<CR>
 
+" let g:fzf_buffers_jump = 1
+let g:fzf_layout = {
+  \ 'window': {
+  \     'width': 0.9,
+  \     'height': 0.9
+  \   }
+  \ }
+let g:fzf_preview_window = ['right:60%', 'ctrl-/']
 let g:fzf_action = {
   \ 'ctrl-v': 'vsplit',
   \ 'ctrl-x': 'split',
 \ }
+
+" fzf-vim
+let g:fzf_vim = {}
+let g:fzf_vim.buffers_jump = 1
+
+if has('nvim')
+  let g:terminal_color_0 = '#000000'
+  let g:terminal_color_1 = '#ff3333'
+  let g:terminal_color_2 = '#aad94c'
+  let g:terminal_color_3 = '#ffb454'
+  let g:terminal_color_4 = '#36a3d9'
+  let g:terminal_color_5 = '#e799ff'
+  let g:terminal_color_6 = '#95e6cb'
+  let g:terminal_color_7 = '#ffffff'
+
+  let g:terminal_color_8 = '#acb6bf'
+  let g:terminal_color_9 = '#ff3333'
+  let g:terminal_color_10 = '#aad94c'
+  let g:terminal_color_11 = '#ffb454'
+  let g:terminal_color_12 = '#36a3d9'
+  let g:terminal_color_13 = '#e799ff'
+  let g:terminal_color_14 = '#95e6cb'
+  let g:terminal_color_15 = '#ffffff'
+endif
 
 " }}}
 
@@ -1460,32 +1504,16 @@ let g:dap_virtual_text = v:true
 let g:dap_virtual_text_highlight = 'Comment'
 " }}}
 
+" guihua (neovim only) {{{
+aug vimrc-nvim-guihua | au!
+  au FileType guihua nn <buffer> <silent> q <C-w>q | setlocal nofoldenable
+aug end
+" }}}
+
 " }}}
 
 " neovim only: settings/modifiers
 if has('nvim')
-  aug vimrc-nvim-term | au!
-    " begin terminal with insert mode instead of normal mode. also map <ESC> locally to put back into normal
-    " mode (note it has to be buffer local otherwise it'll mess up fzf windows). also make it *VERY* apparent
-    " that we're working in a terminal window
-    au BufEnter term://* startinsert | tnoremap <buffer> <ESC> <C-\><C-N>
-
-    " turn off line numbers when using the terminal in term mode
-    au TermOpen term://* setlocal nonu nornu | startinsert | tnoremap <buffer> <ESC> <C-\><C-N>
-    au TermEnter term://* setlocal nonu nornu
-    au TermLeave term://* setlocal nu rnu
-
-    " close automatically
-    au TermClose term://* close
-
-    " make commands to make term open easier
-    command! -nargs=* Term split | terminal <args>
-    command! -nargs=* VTerm vsplit | terminal <args>
-
-    nn <Leader>ts :Term<CR>
-    nn <Leader>tv :VTerm<CR>
-  aug end
-
   aug vimrc-nvim-fzf | au!
     au FileType fzf tnoremap <buffer> <ESC> <C-Q>
   aug end

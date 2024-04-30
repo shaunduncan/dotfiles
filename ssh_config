@@ -1,3 +1,5 @@
+Include /Users/sduncan/.colima/ssh_config
+
 Compression yes
 ForwardAgent yes
 ServerAliveInterval 20

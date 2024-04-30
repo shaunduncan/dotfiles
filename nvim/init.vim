@@ -3,4 +3,5 @@ let &packpath = &runtimepath
 source ~/.vimrc
 
 lua require("lsp")
+lua require("snips")
 lua require("plugins")

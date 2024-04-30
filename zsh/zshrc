@@ -148,6 +148,9 @@ autoload -Uz mr       # tools for working with `glab mr`
 autoload -Uz review   # review a pull request
 autoload -Uz workon   # utility to manage git worktrees
 
+# utilities for working with git repos
+autoload -Uz gitutils && gitutils
+
 # load sysinfo data
 autoload -Uz sysinfo && sysinfo
 
@@ -187,6 +190,9 @@ autoload -Uz run-help
 
 # FIXME: is this ok?
 # inspath /usr/local/opt/sqlite/bin
+
+# installed rust projects
+inspath ${HOME}/.cargo/bin
 
 # COMPLETION {{{
 
@@ -295,9 +301,6 @@ fi
 
 # KEY BINDINGS {{{
 
-# start in viins mode, `bindkey -a` will start in vicmd
-bindkey -v
-
 # this bit below gets the HOME/END keys working consistently either outside or from within a tmux
 # session. i'm not sure why this is: it seemed to happen mostly using alacritty with xterm-256color
 # and combined with tmux using screen-256color. those two use different sequences for beginning/end
@@ -306,16 +309,28 @@ bindkey -v
 # https://forums.freebsd.org/threads/alacritty-home-end-not-working-on-command-line.79102/#post-496693
 #
 # tl;dr - we have to manually start top 'keyboard_transmit' mode (man 5 terminfo)
+#
+# NOTE: when in doubt, use: showkey --scancodes
 if (( ${+terminfo[smkx]} )) && (( ${+terminfo[rmkx]} )); then
-  # just use anonymous functions
-  add-zle-hook-widget -Uz zle-line-init (){ echoti smkx }
-  add-zle-hook-widget -Uz zle-line-finish (){ echoti rmkx }
+  zle-line-init() {
+    echoti smkx
+  }
+  zle-line-finish() { 
+    echoti rmkx
+  }
+  zle -N zle-line-init
+  zle -N zle-line-finish
 fi
 
-# hist search: only do incremental searches for cmd mode
+# start in viins mode, `bindkey -a` will start in vicmd
+bindkey -v
+
+# hist search: only do incremental searches
 bindkey '^R' history-incremental-search-backward
 bindkey -M isearch '^R' history-incremental-search-backward
 bindkey -M isearch '^F' history-incremental-search-forward
+
+# clear screen
 bindkey -M isearch '^L' clear-screen
 
 # FIXME: <C-K> and <C-J> should do history up,down in normal mode
@@ -324,15 +339,18 @@ bindkey -M isearch '^L' clear-screen
 bindkey '^[[1;3C' forward-word
 bindkey '^[[1;3D' backward-word
 
-# home/end behavior with vi mode
-bindkey "${terminfo[khome]}" beginning-of-line
-bindkey "${terminfo[kend]}" end-of-line
+# map home key to act like ^ in cmd mode
+bindkey -M viins "[1~" beginning-of-line
+bindkey -M vicmd "[1~" beginning-of-line
 
-# DEL
-bindkey "${terminfo[kdch1]}" vi-delete-char
+# map end key to act like $ in cmd mode
+bindkey -M viins "[4~" end-of-line
+bindkey -M vicmd "[4~" end-of-line
 
-# bindkey -M vicmd "${terminfo[khome]}" beginning-of-line
-# bindkey -M vicmd "${terminfo[kend]}" end-of-line
+# map del key 
+bindkey -M vicmd "[3~" vi-delete-char
+
+bindkey '' backward-delete-word
 
 # }}}
 
@@ -360,7 +378,7 @@ alias zcp='zmv -i -C'
 alias zln='zmv -i -L'
 
 # default behaviors
-alias ag='ag -U'              # don't ignore things from .gitignore
+alias ag='ag -U --hidden'     # -U to *not* respect .gitignore
 alias history='fc -liD 0'     # full history with date/time info
 alias info='info --vi-keys'   # use better navigation
 alias ls='ls -F --color=auto' # extra hints for the outputs and auto color
@@ -406,6 +424,7 @@ alias curlall='curl -D /dev/stdout -o /dev/stdout -s -L'
 alias zprofile='ZPROFILE=1 zsh -i -c "zprof && exit"'
 alias zreload='print "reloading zshrc"; exec zsh'
 alias zr='zreload'
+alias mkign='mkdir -p __ignore__'
 
 # }}}
 
@@ -542,7 +561,9 @@ alias sso='aws sso login --profile'
 DOCKER_HIDE_LEGACY_COMMANDS=1
 # }}}
 
-
+# openjdk {{{
+export PATH=$(brew --prefix java)/bin:${PATH}
+# }}}
 
 # misc {{{
 alias vimwiki="vim -c 'VimwikiIndex'"
@@ -559,7 +580,7 @@ typeset -gU cdpath fpath path
 source $(brew --prefix zsh-autosuggestions)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
-ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+ZSH_AUTOSUGGEST_STRATEGY=(completion)
 ZSH_AUTOSUGGEST_USE_ASYNC=1
 
 # no two char commands which should handle the ones that don't make sense (cd, ls, etc.)
@@ -621,3 +642,7 @@ HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND='bg=red,fg=black'
 # move forward one char and vi-add-next back to insert mode. types a space, back to cmd mode, delete
 # a char, go to EOL
 # bindkey -M viins -s '^T' '^[Iman ^[Ela ^[d$'
+
+export NOATTEST=1
+
+alias j=jira

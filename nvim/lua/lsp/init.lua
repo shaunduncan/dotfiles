@@ -1,16 +1,5 @@
--- local vim = vim
+local vim = vim
 local utils = require('lsp.utils')
-local inspect = require('vim.inspect')
-
--- TODO:
--- dap
--- ultisnips/luasnip
--- add to git
-
--- dap {{{
--- local dap = require("dap")
--- require("dap-go").setup()
--- }}}
 
 local lsp_capabilities = vim.lsp.protocol.make_client_capabilities()
 
@@ -23,6 +12,7 @@ local mason = require('mason').setup({
     }
   }
 })
+local lspconfig = require('lspconfig')
 local mason_lspconfig = require('mason-lspconfig')
 
 -- default lsp configuration
@@ -31,28 +21,38 @@ local default_cfg = {
   on_attach = utils.on_attach,
 }
 
-local lsp_config = {
+local server_cfg = {
   dockerls = default_cfg,
   bashls = default_cfg,
-  clangd  = default_cfg,
+  bufls = default_cfg,
+  clangd  = {
+    capabilities = lsp_capabilities,
+    on_attach = utils.on_attach,
+    cmd = {
+      'clangd',
+      '--offset-encoding=utf-16',
+    },
+  },
   dockerls  = default_cfg,
   jedi_language_server = default_cfg,
   jsonls  = default_cfg,
   rust_analyzer  = default_cfg,
+  jdtls = default_cfg,
   solargraph = default_cfg,
   sqlls  = default_cfg,
   tflint = default_cfg,
   tsserver = default_cfg,
-  yamlls = {
-    capabilities = lsp_capabilities,
-    on_attach = on_attach,
-    settings = {
-      yaml = {
-        keyOrdering = false
-      }
-    }
-  },
+  -- yamlls = {
+  --   capabilities = lsp_capabilities,
+  --   on_attach = utils.on_attach,
+  --   settings = {
+  --     yaml = {
+  --       keyOrdering = false
+  --     }
+  --   }
+  -- },
   terraformls = default_cfg,
+  lua_ls = default_cfg,
 }
 
 -- ensure installed
@@ -60,19 +60,29 @@ mason_lspconfig.setup({
   ensure_installed = {
     'dockerls',
     'bashls',
+    'bufls',
     'clangd',
     'dockerls',
     'jedi_language_server',
     'jsonls',
-    -- 'jdtls', (java)
+    'jdtls',
     -- 'solargraph', (ruby)
+    'rust_analyzer',
     'sqlls',
     'tflint',
     'tsserver',
-    'yamlls',
+    -- 'yamlls',
     'terraformls',
+    'lua_ls',
   }
 })
+
+mason_lspconfig.setup_handlers({
+  function(server)
+    lspconfig[server].setup(server_cfg[server])
+  end,
+})
+    
 
 -- lspsaga {{{
 require('lspsaga').setup({
@@ -83,9 +93,13 @@ require('lspsaga').setup({
       quit = {'q', '<ESC>'},
     },
   },
+  definition = {
+    width = 0.5,
+  },
   diagnostic = {
     extend_relatedInformation = true,
-    max_width = 0.75,
+    max_width = 0.5,
+    max_show_width = 0.5,
   },
   finder = {
     keys = {
@@ -98,6 +112,8 @@ require('lspsaga').setup({
     keys = {
       quit = {'q', '<ESC>'},
     },
+    max_width = 0.5,
+    open_cmd = '!firefox',
   },
   lightbulb = {
     enable = false, -- ???
@@ -106,7 +122,42 @@ require('lspsaga').setup({
     enable = false,
   },
   ui = {
-    devicon = false,
+    border = 'single', -- single, double, rounded, shadow, solid
+    devicon = true,
+    foldericon = false,
+    expand = '+',
+    collapse = '-',
+    code_action = '⚑',
+    actionfix = '💡',
+    imp_sign = '⦿',
+    kind = {
+      File = { '📄 ', 'Tag' },
+      Module = { '▣ ', 'Exception' }, -- or ¶ or ⌘
+      Namespace = { '§ ', 'Include' },
+      Package = { '❒ ', 'Label' }, -- or ⊞ or ¶
+      Class = { 'ℂ ', 'Include' },
+      Method = { '⨍ ', 'Function' },
+      Property = { '@ ', '@property' },
+      Field = { '@ ', '@field' },
+      Constructor = { '🛠 ', '@constructor' }, -- or ⚙
+      Enum = { '∈ ', '@number' },
+      Interface = { '⮻ ', 'Type' },
+      Function = {'⨍ ', 'Function'},
+      Variable = { '𝒳 ', '@variable' },
+      Constant = { '🔒 ', 'Constant' },
+      String = { 'S ', 'String' },
+      Number = { '# ', 'Number' }, -- or №
+      Boolean = { '◧ ', 'Boolean' }, -- or ◐ or ⏻
+      Array = { '[]', 'Type' },
+      Object = { '🄾 ', 'Type' }, -- Ⓞ or ¤ or ⓞ
+      Key = { '🔑 ', 'Constant' },
+      Null = { '∅ ', 'Constant' },
+      EnumMember = { '∋ ', 'Number' },
+      Struct = { '{}', 'Type' },
+      Event = { '⚠ ', 'Constant' },
+      Operator = { '± ', 'Operator' },
+      TypeParameter = { '⦂ ', 'Type' },
+    },
   },
 })
 -- }}}
@@ -116,7 +167,14 @@ local border_chars = {'╒', '═', '╕', '│', '╛', '═', '╘', '│'}
 
 local float_opts = {
   focusable = false,
-  close_events = {'BufLeave', 'CursorMoved', 'InsertEnter', 'FocusLost'},
+  close_events = {
+    'BufLeave',
+    'CursorMoved',
+    'ModeChanged',
+    'FocusLost',
+    'MenuPopup',
+    'WinNew',
+  },
   border = border_chars,
   source = false,
   header = false,
@@ -149,10 +207,12 @@ local float_opts = {
 }
 
 vim.diagnostic.config({
-  float = float_opts,
-  severity_sort = true,
   underline = false,
   virtual_text = false,
+  signs = true,
+  float = float_opts,
+  severity_sort = true,
+  update_in_insert = false,
 })
 
 vim.lsp.handlers["textDocument/hover"] = vim.lsp.with(vim.lsp.handlers.hover, {
@@ -188,3 +248,24 @@ vim.api.nvim_create_user_command('LspDeclaration', 'echo "nope"', {})
 
 -- language specific settings
 require('lsp.golang')
+
+-- debugging
+require('lsp.dap')
+
+-- general lsp keybinds
+vim.keymap.set('n', 'd]', vim.diagnostic.goto_next)
+vim.keymap.set('n', 'd[', vim.diagnostic.goto_prev)
+
+-- codeaction hints
+require('nvim-lightbulb').setup({
+  autocmd = {
+    enabled = true,
+    updatetime = 10,
+  },
+  sign = {
+    enabled = false,
+  },
+  status_text = {
+    enabled = true,
+  },
+})

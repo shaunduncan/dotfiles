@@ -1,5 +1,21 @@
+# vi:ft=zsh
+
+# a collection of various git utilities
+
+emulate -L zsh
+
 # show status of all worktrees
-for wt in $(git wt list | awk '{print $1}'); do echo $wt; pushd $wt; git s; popd; echo ""; done
+git-tree() {
+  echo "it worked"
+}
+# for wt in $(git wt list | awk '{print $1}'); do echo $wt; pushd $wt; git s; popd; echo ""; done
+
+git-foobar() {
+  echo "maybe?"
+}
 
 # prune branches that you don't need (they've been merged)
-git branch --no-column --no-color --merged origin/master | egrep -v '(^\* master|^\+ )' | xargs git branch -d
+# git branch --no-column --no-color --merged origin/master | egrep -v '(^\* master|^\+ )' | xargs git branch -d
+
+# only run once
+unfunction $0
