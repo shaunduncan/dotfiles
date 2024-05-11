@@ -61,7 +61,7 @@ mason_lspconfig.setup({
     'dockerls',
     'bashls',
     'bufls',
-    'clangd',
+    -- 'clangd',
     'dockerls',
     'jedi_language_server',
     'jsonls',

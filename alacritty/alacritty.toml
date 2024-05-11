@@ -58,7 +58,7 @@ TERM = "alacritty"
 
 [font]
 builtin_box_drawing = true
-size = 12.0
+size = 9.0
 
 # unicode fallbacks (no bullshit color emoji)
 #
@@ -206,10 +206,10 @@ semantic_escape_chars = ",│║┃`|:\"' ()[]{}<>\t="
 
 [shell]
 args = ["--login"]
-program = "/opt/homebrew/bin/zsh"
+program = "/usr/bin/zsh"
 
 [window]
-decorations = "none"
+# decorations = "none"
 dynamic_padding = false
 dynamic_title = true
 opacity = 1.0
