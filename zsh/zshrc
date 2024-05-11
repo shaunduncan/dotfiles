@@ -100,7 +100,7 @@ setopt prompt_percent  # support % expansion
 setopt prompt_subst    # support parameter expansion
 
 # mode def
-setopt vi no_emacs no_dvorak
+# setopt vi no_emacs no_dvorak
 
 #}}}
 

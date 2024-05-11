@@ -113,7 +113,7 @@ local on_attach = function(client, bufnr)
   mapkey('n', '<leader>gat', ':GoAddTest<CR>', opts)
 
   -- running tests
-  local argstr = ' -a -test.timeout=3s<CR>'
+  local argstr = ' -a -test.timeout=30s<CR>'
 
   -- mapkey('n', '<leader>gt', ':GoTestFunc' .. argstr, opts)
   mapkey('n', '<leader>gT', ':GoTestSum -f testname<CR>', opts)

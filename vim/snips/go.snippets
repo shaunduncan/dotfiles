@@ -15,7 +15,7 @@ endsnippet
 # fill in boilerplate for a test function
 snippet "^test" "test func" brtA
 func Test${1:XXX}(t *testing.T) {
-	t.Paralell()
+	t.Parallel()
 
 	scenarios := []struct{
 		name string

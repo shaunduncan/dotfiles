@@ -632,7 +632,7 @@ au vimrc BufRead,BufNewFile *.jsonl setfiletype jsonl
 au vimrc FileType json setlocal foldmethod=syntax
 
 " Ruby, etc -> indent 2 spaces
-au vimrc FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim,bash,sh,zsh,toml,json,lua setlocal ts=2 sw=2 sts=2
+au vimrc FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim,bash,sh,zsh,toml,json,lua,typescript,typescriptreact setlocal ts=2 sw=2 sts=2
 
 " vim commentstring: the default one doesn't include a space after the double quote
 au vimrc FileType vim setlocal commentstring=\"\ %s
