@@ -486,7 +486,7 @@ export DIRENV_LOG_FORMAT=
 # }}}
 
 # speedscale {{{
-export SPEEDCTL_HOME=/Users/sduncan/.speedscale
+export SPEEDCTL_HOME=${HOME}/.speedscale
 inspath $SPEEDCTL_HOME
 # }}}
 

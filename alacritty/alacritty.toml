@@ -58,7 +58,7 @@ TERM = "alacritty"
 
 [font]
 builtin_box_drawing = true
-size = 9.0
+size = 10.0
 
 # unicode fallbacks (no bullshit color emoji)
 #

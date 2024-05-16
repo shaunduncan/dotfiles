@@ -4,6 +4,10 @@ local utils = require('lsp.utils')
 local lsp_capabilities = vim.lsp.protocol.make_client_capabilities()
 
 local mason = require('mason').setup({
+  -- registries = {
+  --   "github:mason-org/mason-registry",
+  --   "github:lawrenceho/mason-registry", -- for arm64 lua-language-server
+  -- },
   ui = {
     icons = {
       package_installed = "✓",
@@ -52,7 +56,7 @@ local server_cfg = {
   --   }
   -- },
   terraformls = default_cfg,
-  lua_ls = default_cfg,
+  -- lua_ls = default_cfg,
 }
 
 -- ensure installed
@@ -73,7 +77,7 @@ mason_lspconfig.setup({
     'tsserver',
     -- 'yamlls',
     'terraformls',
-    'lua_ls',
+    -- 'lua_ls',
   }
 })
 

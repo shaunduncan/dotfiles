@@ -91,5 +91,7 @@ elif (( $__is_macos )); then
   export LSCOLORS=Exfxcxdxbxhedxhbagacad
 fi
 
+export XDG_DATA_DIRS=${XDG_DATA_DIRS}:/var/lib/flatpak/exports/share:/home/sduncan/.local/share/flatpak/exports/share
+
 # load secrets if they exist
 [[ -f $HOME/.secrets.env ]] && source $HOME/.secrets.env
