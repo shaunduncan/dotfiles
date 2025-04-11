@@ -32,6 +32,12 @@ fun! CenterMe()
     let &virtualedit = ve_save
 endf
 
+" TODO (allow jump to last edited file)
+" augroup AutomaticMarks
+    " autocmd!
+    " autocmd BufLeave * normal! mE
+" augroup END
+
 " TODO
 " Start a new change before deleting with Ctrl+u, so a normal mode "u" can still
 " recover the deleted word or line.  Normally Ctrl+u while in insert mode
@@ -79,6 +85,7 @@ Plug 'shaunduncan/dotfiles', {
   \ 'frozen': v:true
   \ }
 
+Plug 'speedscale/speedscale.nvim', { 'frozen': v:true }
 " Plug 'Raimondi/delimitMate'
 " Plug 'szw/vim-maximizer' ... alternative to zoom tab
 
@@ -90,22 +97,25 @@ if !has('nvim')
   Plug 'dense-analysis/ale'
 endif
 
+if has('nvim')
+  Plug 'MeanderingProgrammer/render-markdown.nvim'
+else
+  Plug 'preservim/vim-markdown', { 'for': 'markdown' }
+endif
+
 Plug 'cespare/vim-toml',         { 'for': 'toml' }
 Plug 'hashivim/vim-terraform',   { 'for': 'terraform' }
 Plug 'uarun/vim-protobuf',       { 'for': 'proto' }
 Plug 'vim-python/python-syntax', { 'for': 'python' }
-Plug 'preservim/vim-markdown',   { 'for': 'markdown' }
 Plug 'udalov/kotlin-vim'
+Plug 'NoahTheDuke/vim-just'
+Plug 'Fymyte/rasi.vim', { 'for': 'rasi' }
 " }}}
 
 " dev tools {{{
-Plug 'Konfekt/FastFold'
+" Plug 'Konfekt/FastFold'
 Plug 'tpope/vim-commentary'
 Plug 'tpope/vim-surround'
-
-" markdown utils
-Plug 'junegunn/goyo.vim',      { 'for': 'markdown' }
-Plug 'junegunn/limelight.vim', { 'for': 'markdown' }
 
 " git tools
 Plug 'tpope/vim-fugitive'
@@ -122,55 +132,60 @@ if has('nvim')
   " requirement for some
   Plug 'nvim-lua/plenary.nvim'
 
-  " debugging
+  " debugging {{{
   Plug 'mfussenegger/nvim-dap'
   Plug 'rcarriga/nvim-dap-ui'
   Plug 'nvim-neotest/nvim-nio'
   Plug 'leoluz/nvim-dap-go', { 'for': 'go' }
+  " }}}
 
-  " lsp
+  " git {{{
+  " Plug 'sindrets/diffview.nvim'
+  " }}}
+
+  " lsp {{{
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
   Plug 'nvim-treesitter/nvim-treesitter-textobjects'
   Plug 'neovim/nvim-lspconfig'
   Plug 'williamboman/mason.nvim'
   Plug 'williamboman/mason-lspconfig.nvim'
   Plug 'glepnir/lspsaga.nvim', { 'branch': 'main' }
-  Plug 'weilbith/nvim-code-action-menu'
-  Plug 'kosayoda/nvim-lightbulb'
-
-  " golang (using my fork for now)
-  Plug 'shaunduncan/go.nvim'
-  Plug 'ray-x/guihua.lua'
 
   " lsp symbols in fzf
   Plug 'gfanto/fzf-lsp.nvim'
 
-  " try out completion at some point?
-  " Plug 'hrsh7th/cmp-nvim-lsp'
-  " Plug 'hrsh7th/cmp-buffer'
-  " Plug 'hrsh7th/cmp-path'
-  " Plug 'hrsh7th/cmp-nvim-lua'
-  " Plug 'hrsh7th/nvim-cmp'
+  " }}}
 
-  " snips
-  " Plug 'L3MON4D3/LuaSnip'
+  " golang (using my fork for now) {{{
+  Plug 'shaunduncan/go.nvim', {'for': 'go'}
+  Plug 'ray-x/guihua.lua'
 
-  " git
-  Plug 'sindrets/diffview.nvim'
+  " completion {{{
+  Plug 'hrsh7th/nvim-cmp'
+  Plug 'hrsh7th/cmp-nvim-lsp'
+  Plug 'hrsh7th/cmp-nvim-lsp-signature-help'
+  Plug 'hrsh7th/cmp-path'
+  Plug 'hrsh7th/cmp-nvim-lua', {'for': 'lua'}
+  " }}}
 
-  " other
-  Plug 'sindrets/winshift.nvim'
-
-  " integration with glow to render markdown
-  Plug 'ellisonleao/glow.nvim'
-  Plug 'JASONews/glow-hover.nvim'
-
-  " dim non-active buffers
-  " Plug 'sunjon/Shade.nvim'
-  " Plug 'folke/twilight.nvim'
-  Plug 'RRethy/nvim-base16'
-
+  " ascii boxes
   Plug 'jbyuki/venn.nvim'
+
+  " ai {{{
+  Plug 'olimorris/codecompanion.nvim'
+  " }}}
+
+  " ui enhancements {{{
+  Plug 'j-hui/fidget.nvim'
+  Plug 'MunifTanjim/nui.nvim'
+  Plug 'grapp-dev/nui-components.nvim'
+  Plug 'echasnovski/mini.hipatterns'
+  Plug 'echasnovski/mini.icons'
+  Plug 'echasnovski/mini.notify'
+  Plug 'echasnovski/mini.pick'
+  Plug 'echasnovski/mini.align'
+  " }}}
+
 endif
 
 " }}}
@@ -181,16 +196,16 @@ endif
 Plug 'gcmt/taboo.vim'
 Plug 'godlygeek/tabular'
 Plug 'ivyl/vim-bling'
-Plug 'jeetsukumaran/vim-buffergator'
-Plug 'kshenoy/vim-signature'
-Plug 'liuchengxu/vim-which-key'
-Plug 'mbbill/undotree'
-Plug 'skywind3000/asyncrun.vim'
 Plug 'troydm/zoomwintab.vim'
 Plug 'zhimsel/vim-stay'
+Plug 'liuchengxu/vim-which-key'
+
+" can be expensive...
+Plug 'mbbill/undotree'
 
 if has('nvim')
   Plug 'nvim-lualine/lualine.nvim'
+  " Plug 'folke/which-key.nvim'
 else
   Plug 'vim-airline/vim-airline'
   Plug 'vim-airline/vim-airline-themes'
@@ -201,7 +216,6 @@ endif
 " other utils {{{
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
-Plug 'vimwiki/vimwiki'
 " }}}
 
 " debug tools {{{
@@ -211,13 +225,11 @@ Plug 'vimwiki/vimwiki'
 " Plug 'flazz/vim-colorschemes'
 " Plug 'felixhummel/setcolors.vim'
 
-" TODO: potential alternative to netrw
-" Plug 'lambdalisue/fern.vim'
-
 " colorschemes
-Plug 'vv9k/vim-github-dark'
-Plug 'dikiaap/minimalist'
+  " TODO: use this with neovim
+  " Plug 'Shatur/neovim-ayu'
 Plug 'ayu-theme/ayu-vim'
+Plug 'srcery-colors/srcery-vim'
 
 call plug#end()
 " }}}
@@ -347,6 +359,8 @@ let &showbreak='❯ '
 set laststatus=2
 set showcmd
 
+set completeopt=menu,menuone,noselect
+
 " tab completion for opening files and what not: <Tab>shows the list of matches, <Tab> a second
 " time to go through the options. skip commonly ignored files
 set wildmenu
@@ -370,15 +384,8 @@ set synmaxcol=256
 " search settings
 set ignorecase smartcase hlsearch incsearch
 
-" diff options: ignore whitespace and use the better histogram algorithm
-set diffopt+=vertical,iwhite
-
-" hack: vim 8.2 blows up with this but i can't find a good check for it: has('patch-8.1.0360')
-" doesn't work it would seem
-try
-  set diffopt+=algorithm:histogram
-catch /E474/
-endtry
+" diff options
+set diffopt=internal,filler,closeoff,vertical,iwhite,context:999999,algorithm:histogram,indent-heuristic,linematch:60
 
 " empty space fill behavior
 " stl:       space - statusline
@@ -399,6 +406,10 @@ set signcolumn=yes
 
 " persist these things when saving a view
 set viewoptions=folds,slash,unix
+
+" treat json as volatile so we don't auto record views that are worthless
+" XXX: this goes with vim-stay plugin config
+au vimrc BufRead,BufNewFile *.json let g:volatile_ftypes+=['json']
 
 " views can get messed up with cursor position when folds are open or closed so reset the cursor
 " position to the beginning of the file after loaded
@@ -431,11 +442,16 @@ if has('mac')
   let &backupskip=&backupskip.',/private/var/*,/tmp/*'
 endif
 
-" use the system clipboard for text yanks
-if has('linux')
-  set clipboard=unnamedplus
+" use the system clipboard. for neovim, apparently it's better to delay setting this because the system
+" clipboard sync can delay startup
+if !has('nvim')
+  if has('linux')
+    set clipboard=unnamedplus
+  else
+    set clipboard=unnamed
+  endif
 else
-  set clipboard=unnamed
+  lua vim.schedule(function() vim.opt.clipboard = 'unnamedplus' end)
 endif
 
 " add settings to support persistent undo
@@ -582,7 +598,6 @@ let &t_Te="\e[29m"
 
 " handle colorscheme updates
 au vimrc ColorSchemePre * hi clear | syntax reset
-" au vimrc ColorScheme,VimEnter,FileType * call my#themes#apply_theme_overrides()
 
 " TODO: update airline when the colorscheme changes
 " au vimrc ColorScheme * if get(g:,'loaded_airline',0) | call airline#switch_matching_theme() | endif
@@ -605,13 +620,17 @@ au vimrc ColorSchemePre * hi clear | syntax reset
 " colorscheme ghdark
 " colorscheme minimalist
 
-" color settings when not using a my_theme
-if !has_key(g:, 'my_theme')
-  colorscheme ayu
+" colorscheme ayu
 
-  " manually apply overrides
-  call my#themes#apply_theme_overrides()
-endif
+let g:srcery_italic=0
+let g:srcery_inverse=0
+let g:srcery_inverse_matches=0
+let g:srcery_bg_passthrough=1
+
+colorscheme srcery
+
+" manually apply overrides
+call my#themes#apply_theme_overrides()
 
 if has('nvim')
   " ensure that borders show up and look consistent
@@ -620,40 +639,118 @@ endif
 
 hi normal guibg=black
 hi clear cursorline
+
+" prevents unwanted underlines from showing up in diff views
+set cursorlineopt=number
 " }}}
 
 " FILETYPES {{{
-" set *.pyx cython files as python syntax
-au vimrc BufRead,BufNewFile *.pyx setfiletype python
 
-" treat jsonl is json
-" FIXME: these can be big so syntax so things will really slow down
-au vimrc BufRead,BufNewFile *.jsonl setfiletype jsonl
-au vimrc FileType json setlocal foldmethod=syntax
+" settings for C and C headers
+let g:c_gnu = 1
+let g:c_comment_strings = 1
+let g:c_syntax_for_h = 1
+let g:c_functions = 1
+let g:c_function_pointers = 1
 
-" Ruby, etc -> indent 2 spaces
-au vimrc FileType ruby,haml,eruby,yaml,sass,cucumber,javascript,html,vim,bash,sh,zsh,toml,json,lua setlocal ts=2 sw=2 sts=2
+aug vimrc-filetypes | au!
+  " custom extensions {{{
 
-" vim commentstring: the default one doesn't include a space after the double quote
-au vimrc FileType vim setlocal commentstring=\"\ %s
+  " set *.pyx cython files as python syntax
+  au BufRead,BufNewFile *.pyx setfiletype python
 
-" LaTeX commentstring: the default one is '%%s' which breaks my wrap plugin config, change it
-au vimrc FileType tex setlocal foldmethod=marker commentstring=%\ %s
+  " treat jsonl is json
+  " FIXME: these can be big so syntax so things will really slow down
+  au BufRead,BufNewFile *.jsonl setfiletype json
 
-" sql commentstring: doesn't include any spacing
-au vimrc FileType sql setlocal commentstring=--\ %s
+  " modifiable vim help docs shouldn't conceal things while editing because it's confusing, and we're editing
+  au BufEnter *.txt if &ft ==# 'help' && &modifiable | setfiletype text | endif
 
-" don't let plugins change my preferences (this makes any setl just use the global value)
-au vimrc FileType vim,zsh setlocal formatoptions<
+  " }}}
 
-" markdown formatoptions: since it's documentation, enforce textwidth wrapping
-au vimrc BufRead *.mkd,*.markdown,*.md setlocal fo+=t2
+  " indentation {{{
 
-" makefiles have tabs
-au vimrc FileType make setlocal ts=4 sw=4 sts=4 noet
+  " disable folding for man filetypes
+  " au FileType man setlocal nofoldenable
 
-" modifiable vim help docs shouldn't conceal because it's confusing, and we're editing
-au vimrc BufEnter *.txt if &ft ==# 'help' && &modifiable | setfiletype text | endif
+  " config files: 2 space indents, disable saving folds in views
+  au FileType haml,json,toml,yaml setlocal ts=2 sw=2 sts=2 viewoptions=slash,unix
+
+  " shell scripts
+  au FileType sh,bash,zsh setlocal ts=2 sw=2 sts=2
+
+  " web and markup
+  au FileType html,xml,sass,markdown setlocal ts=2 sw=2 sts=2
+
+  " others
+  au FileType cucumber,proto,protobuf setlocal ts=2 sw=2 sts=2
+
+  " makefiles (strictly tabs)
+  au FileType make setlocal ts=4 sw=4 sts=4 noet
+
+  " }}}
+
+  " commentstrings {{{
+
+  " filetypes that should add a space after the comment character
+  au FileType vim setlocal cms=\"\ %s
+
+  " snippets: include a space after the comment character
+  au FileType snippets setlocal cms=#\ %s
+
+  " LaTeX: the default '%%s' breaks my wrap plugin config, change it
+  au FileType tex setlocal cms=%\ %s
+
+  " sql: include a space after the comment character
+  au FileType sql setlocal cms=--\ %s
+
+  " c/c++ prefer double slash comments
+  au FileType c,cpp setlocal cms=//\ %s
+
+  " protobuf
+  au FileType proto setlocal cms=//\ %s
+
+  " }}}
+
+  " folding {{{
+
+  " treesitter folding (for the ones that support it)
+  if has('nvim')
+    " XXX: should be in treesitter config
+    au FileType c,cpp,gitconfig,go,gotmpl,java,javascript,make,markdown,proto,python,query,sshconfig,terraform,toml,typescript,yaml
+          \ setlocal foldmethod=expr foldexpr=nvim_treesitter#foldexpr()
+  else
+    " filetypes that want explicitly manual folding
+    au FileType python,yaml setlocal foldmethod=manual
+
+    au FileType go setlocal foldmethod=syntax
+  endif
+
+  " syntax based folding
+  au FileType json setlocal nofoldenable
+
+  " marker based folding
+  au FileType dockerfile,tex setlocal foldmethod=marker
+
+  " allow .proto folding based on curl brace and indent 4 spaces
+  au FileType proto,protobuf setlocal foldmethod=marker foldmarker={,}
+
+  " filetypes that need more abbreviated fold text
+  au FileType markdown,python,yaml setlocal foldtext=my#folds#foldtext(0)
+
+  " }}}
+
+  " format options {{{
+
+  " don't let plugins change my preferences (this makes any setl just use the global value)
+  au FileType vim,zsh setlocal formatoptions<
+
+  " enforce markdown textwidth wrapping since it's documentation
+  au FileType markdown setlocal fo+=t2
+
+  " }}}
+
+aug end
 
 " }}}
 
@@ -688,25 +785,12 @@ nn <Leader>rzo :normal [zV]zzO<ESC>
 
 " folding overrides {{{
 
-" disable automatic folding when in insert mode. this prevents a problem where adding the
-" start of a new marker fold unfolds everything below it
-au vimrc InsertEnter * if !exists('w:lastfdm') | let w:lastfdm=&foldmethod | setlocal foldmethod=manual | endif
-au vimrc InsertLeave * if exists('w:lastfdm') | let &l:foldmethod=w:lastfdm | unlet w:lastfdm | endif
-
-" allow .proto folding based on curl brace and indent 4 spaces
-au vimrc FileType proto setlocal foldmethod=marker foldmarker={,} ts=4 sw=4 sts=4
-
-" dockerfiles to be folded with whatever the marker is
-au vimrc FileType dockerfile setlocal foldmethod=marker
-
-" filetypes that need more abbreviated fold text
-au vimrc FileType markdown,python,yaml setlocal foldtext=my#folds#foldtext(0)
-
-" filetypes that want explicitly manual folding
-au vimrc FileType python,yaml setlocal foldmethod=manual
-
-" whitelisted syntax folding files
-au vimrc FileType go setlocal foldmethod=syntax
+aug vimrc-folding | au!
+  " disable automatic folding when in insert mode. this prevents a problem where adding the
+  " start of a new marker fold unfolds everything below it
+  au InsertEnter * if !exists('w:lastfdm') | let w:lastfdm=&foldmethod | setlocal foldmethod=manual | endif
+  au InsertLeave * if exists('w:lastfdm') | let &l:foldmethod=w:lastfdm | unlet w:lastfdm | endif
+aug end
 
 " }}}
 
@@ -870,118 +954,118 @@ endif
 " }}}
 
 " ale {{{
-let g:ale_set_signs=1
+if !has('nvim')
+  let g:ale_set_signs=1
 
-" don't include govet with go linters - gopls does the same thing
-let g:ale_linters={
-  \ 'go': ['gopls', 'revive'],
-  \ 'sh': [],
-  \ 'bash': [],
-  \ 'c': [],
-  \ 'cpp': [],
-  \ 'java': [],
-  \ 'vim': ['ale_custom_linting_rules'],
-\ }
-
-" non-breaking spaces because i suppose ale trims strings
-let s:sp=nr2char(160).nr2char(160)
-
-let g:ale_sign_warning=s:sp
-let g:ale_sign_error=s:sp
-
-let g:ale_completion_enabled=0
-
-let g:ale_echo_cursor=0
-let g:ale_echo_msg_error_str='E'
-let g:ale_echo_msg_warning_str='W'
-let g:ale_echo_msg_info_str='I'
-let g:ale_echo_msg_format='[%severity%] [%linter%] %s'
-
-let g:ale_lint_on_insert_leave=1
-let g:ale_lsp_suggestions=0
-let g:ale_lsp_show_message_severity='error'
-let g:ale_set_loclist=0
-let g:ale_set_quickfix=1
-let g:ale_set_highlights=0
-let g:ale_list_window_size=5
-
-" shortcuts
-nn <Leader>an :ALENext<CR>
-nn <Leader>at :ALEToggle<CR>
-
-" linter config
-let g:ale_go_revive_options='-format ndjson -config ~/.config/dotfiles/lint/revive.toml'
-let g:ale_go_gopls_options='-remote "unix;'.g:gopls_socket.'"'
-
-if has('nvim')
-  let g:ale_use_neovim_diagnostics_api=1
-  let g:ale_virtualtext_cursor='current'
-endif
-
-let g:ale_go_gopls_init_options={
-  \ 'buildFlags': ['-tags', 'smartdns,pcap,kafka'],
-  \ 'importShortcut': 'Link',
-  \ 'ui.codelenses': {
-  \   'tidy': v:false,
-  \ },
-  \ 'ui.diagnostic.analyses': {
-  \   'asmdecl': v:false,
-  \   'assign': v:false,
-  \   'atomic': v:false,
-  \   'atomicalign': v:false,
-  \   'bools': v:false,
-  \   'buildtag': v:true,
-  \   'cgocall': v:true,
-  \   'composites': v:true,
-  \   'copylocks': v:true,
-  \   'deepequalerrors': v:false,
-  \   'embed': v:false,
-  \   'errorsas': v:false,
-  \   'fieldalignment': v:false,
-  \   'httpresponse': v:false,
-  \   'ifaceassert': v:false,
-  \   'infertypeargs': v:true,
-  \   'loopclosure': v:true,
-  \   'lostcancel': v:true,
-  \   'nilfunc': v:false,
-  \   'nilness': v:true,
-  \   'printf': v:true,
-  \   'shadow': v:false,
-  \   'shift': v:true,
-  \   'simplifycompositelit': v:true,
-  \   'simplifyrange': v:true,
-  \   'simplifyslice': v:true,
-  \   'sortslice': v:false,
-  \   'stdmethods': v:true,
-  \   'stringintconv': v:false,
-  \   'structtag': v:false,
-  \   'testinggoroutine': v:true,
-  \   'tests': v:true,
-  \   'timeformat': v:false,
-  \   'unmarshal': v:false,
-  \   'unreachable': v:false,
-  \   'unsafeptr': v:false,
-  \   'unusedparams': v:false,
-  \   'unusedresult': v:false,
-  \   'unusedwrite': v:true,
-  \   'useany': v:true,
-  \   'fillreturns': v:true,
-  \   'nonewvars': v:true,
-  \   'noresultvalues': v:true,
-  \   'undeclaredname': v:true,
-  \   'unusedvariable': v:true,
-  \   'fillstruct': v:true,
-  \   'stubmethods': v:false,
+  " don't include govet with go linters - gopls does the same thing
+  let g:ale_linters={
+    \ 'go': ['gopls', 'revive'],
+    \ 'sh': [],
+    \ 'bash': [],
+    \ 'c': [],
+    \ 'cpp': [],
+    \ 'java': [],
+    \ 'vim': ['ale_custom_linting_rules'],
   \ }
-\ }
 
-let g:ale_use_global_executables=1
+  " non-breaking spaces because i suppose ale trims strings
+  let s:sp=nr2char(160).nr2char(160)
 
-" floating preview {{{
-let g:ale_cursor_detail=1
-let g:ale_floating_preview=1
-let g:ale_close_preview_on_insert=1
-let g:ale_floating_preview_popup_opts='my#ale#get_popup_opts'
+  let g:ale_sign_warning=s:sp
+  let g:ale_sign_error=s:sp
+
+  let g:ale_completion_enabled=0
+
+  let g:ale_echo_cursor=0
+  let g:ale_echo_msg_error_str='E'
+  let g:ale_echo_msg_warning_str='W'
+  let g:ale_echo_msg_info_str='I'
+  let g:ale_echo_msg_format='[%severity%] [%linter%] %s'
+
+  let g:ale_lint_on_insert_leave=1
+  let g:ale_lsp_suggestions=0
+  let g:ale_lsp_show_message_severity='error'
+  let g:ale_set_loclist=0
+  let g:ale_set_quickfix=1
+  let g:ale_set_highlights=0
+  let g:ale_list_window_size=5
+
+  " shortcuts
+  nn <Leader>an :ALENext<CR>
+  nn <Leader>at :ALEToggle<CR>
+
+  " linter config
+  let g:ale_go_revive_options='-format ndjson -config ~/.config/dotfiles/lint/revive.toml'
+  let g:ale_go_gopls_options='-remote "unix;'.g:gopls_socket.'"'
+
+  let g:ale_use_neovim_diagnostics_api=0
+  let g:ale_virtualtext_cursor='current'
+
+  let g:ale_go_gopls_init_options={
+    \ 'buildFlags': ['-tags', 'smartdns,pcap,kafka'],
+    \ 'importShortcut': 'Link',
+    \ 'ui.codelenses': {
+    \   'tidy': v:false,
+    \ },
+    \ 'ui.diagnostic.analyses': {
+    \   'asmdecl': v:false,
+    \   'assign': v:false,
+    \   'atomic': v:false,
+    \   'atomicalign': v:false,
+    \   'bools': v:false,
+    \   'buildtag': v:true,
+    \   'cgocall': v:true,
+    \   'composites': v:true,
+    \   'copylocks': v:true,
+    \   'deepequalerrors': v:false,
+    \   'embed': v:false,
+    \   'errorsas': v:false,
+    \   'fieldalignment': v:false,
+    \   'httpresponse': v:false,
+    \   'ifaceassert': v:false,
+    \   'infertypeargs': v:true,
+    \   'loopclosure': v:true,
+    \   'lostcancel': v:true,
+    \   'nilfunc': v:false,
+    \   'nilness': v:true,
+    \   'printf': v:true,
+    \   'shadow': v:false,
+    \   'shift': v:true,
+    \   'simplifycompositelit': v:true,
+    \   'simplifyrange': v:true,
+    \   'simplifyslice': v:true,
+    \   'sortslice': v:false,
+    \   'stdmethods': v:true,
+    \   'stringintconv': v:false,
+    \   'structtag': v:false,
+    \   'testinggoroutine': v:true,
+    \   'tests': v:true,
+    \   'timeformat': v:false,
+    \   'unmarshal': v:false,
+    \   'unreachable': v:false,
+    \   'unsafeptr': v:false,
+    \   'unusedparams': v:false,
+    \   'unusedresult': v:false,
+    \   'unusedwrite': v:true,
+    \   'useany': v:true,
+    \   'fillreturns': v:true,
+    \   'nonewvars': v:true,
+    \   'noresultvalues': v:true,
+    \   'undeclaredname': v:true,
+    \   'unusedvariable': v:true,
+    \   'fillstruct': v:true,
+    \   'stubmethods': v:false,
+    \ }
+  \ }
+
+  let g:ale_use_global_executables=1
+
+  " floating preview {{{
+  let g:ale_cursor_detail=1
+  let g:ale_floating_preview=1
+  let g:ale_close_preview_on_insert=1
+  let g:ale_floating_preview_popup_opts='my#ale#get_popup_opts'
+endif
 " }}}
 
 " }}}
@@ -1291,7 +1375,7 @@ nn <Leader>ut :UndotreeToggle<CR>
 let g:fastfold_savehook=1
 
 " let these handle folding on their own (presumably from lsp)
-let g:fastfold_skip_filetypes=['go']
+let g:fastfold_skip_filetypes=['go','json']
 " }}}
 
 " vim-commentary {{{
@@ -1328,9 +1412,16 @@ nn <silent> <Leader>+ :ZoomWinTabToggle<CR>
 
 " ultisnips {{{
 let g:UltiSnipsEditSplit='vertical'
+let g:UltiSnipsSnippetDirectories=[$HOME . '/.config/dotfiles/vim/snips']
 
-" <c-space> is equivalent to <nul>, at least on mac
-let g:UltiSnipsExpandTrigger='<C-Space>'
+" <c-space> is equivalent to <nul>, at least on mac. <M-M> == <C-CR>
+let g:UltiSnipsExpandTrigger='<M-M>'
+
+" auto fill snippets for certain filetypes
+aug vimrc-newfile-snips | au!
+    au BufNewFile *.h execute "normal ionce\<M-M>\<ESC>"
+    au BufNewFile *.go execute "normal iNEWFILE\<M-M>\<ESC>"
+aug end
 
 let g:loaded_ruby_provider = 0
 let g:loaded_perl_provider = 0
@@ -1342,7 +1433,7 @@ let g:loaded_node_provider = 0
 " }}}
 
 " vim-markdown {{{
-let g:vim_markdown_folding_disabled=0
+let g:vim_markdown_folding_disabled=1
 let g:vim_markdown_folding_style_pythonic=1
 let g:vim_markdown_override_foldtext=0
 let g:vim_markdown_conceal=0
@@ -1385,14 +1476,6 @@ aug end
 " }}}
 
 " fzf {{{
-nn <Leader>? :Ag<CR>
-
-function! s:tmux_scratch() abort
-  call system("tmux if-shell '#{==:#{session_name},scratch}' \"detach-client\" \"display-popup -xC -yC -w 80\% -h 80\% -E 'tmux new-session -A -s scratch\"")
-endfunction
-
-nn <silent> <Leader>t :call <SID>tmux_scratch()<CR>
-
 " let g:fzf_buffers_jump = 1
 let g:fzf_layout = {
   \ 'window': {
@@ -1505,9 +1588,11 @@ let g:dap_virtual_text_highlight = 'Comment'
 " }}}
 
 " guihua (neovim only) {{{
-aug vimrc-nvim-guihua | au!
-  au FileType guihua nn <buffer> <silent> q <C-w>q | setlocal nofoldenable
-aug end
+if has('nvim')
+  aug vimrc-nvim-guihua | au!
+    au FileType guihua nn <buffer> <silent> q <C-w>q | setlocal nofoldenable
+  aug end
+endif
 " }}}
 
 " }}}

@@ -88,6 +88,8 @@ def main(argv):
 
     action = argv[1]
 
+    # new_grid = f'{rows}:{cols}:{x}:{y}:{w}:{h}'
+
     if action == 's':
         set_layout(argv[2])
     elif action == 'sl':

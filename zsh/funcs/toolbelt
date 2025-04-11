@@ -10,8 +10,8 @@ autoload -Uz sysinfo && sysinfo
 # recompinit: performs compinit with dump export and recompile of zcompdump
 recompinit() {
   # redump
-  compinit -u -d
-  touch $HOME/.zcompdump
+  rm -f $HOME/.zcompdump
+  compinit -C
 
   # recompile
   zcompile -M $HOME/.zcompdump
@@ -22,7 +22,12 @@ recompinit() {
 # already exist in the $_comps dictionary
 compinit_command() {
   if (( ! ${+_comps[$1]} )); then
-    source <($1 completion zsh)
+    local comp="$($1 completion zsh)"
+    eval $comp
+
+    mkdir -p $ZSH/funcs && echo "$comp" >! $ZSH/funcs/${_comps[$1]}
+    zcompile -M $ZSH/funcs/${_comps[$1]}
+
     recompinit
   fi
 }
@@ -72,20 +77,32 @@ shlvl() {
 # utility for showing status of all git work trees
 wt-stat() {
   for l in $(git worktree list|awk '{print $1}'); do
+    local ticket=$(basename $l)
+    local state=$(jira issue view ${ticket} --raw 2>/dev/null | jq -r '.fields.status.name' || '')
+
+    if [[ -n "${state}" ]]; then
+      state=" (${state})"
+    fi
+
     if [[ -z "$(git --work-tree=$l --git-dir=$l/.git status --porcelain)" ]]; then
-      echo -n "\033[38;5;2m✔\033[0m ${l}\n"
+      echo -n "\033[38;5;2m✔\033[0m ${l}${state}\n"
     else
-      echo -n "\033[38;5;1m✘\033[0m ${l}\n"
+      echo -n "\033[38;5;1m✘\033[0m ${l}${state}\n"
     fi
   done
 }
 
 wt-clean() {
   for l in $(git worktree list|awk '{print $1}'); do
-    name=$(echo $l | awk -F '/' '{print $NF}')
+    local name=$(basename $l)
+    local state=$(jira issue view ${name} --raw 2>/dev/null | jq -r '.fields.status.name' || '')
+
+    if [[ -n "${state}" ]]; then
+      state=" (${state})"
+    fi
 
     if [[ -z "$(git --work-tree=$l --git-dir=$l/.git status --porcelain)" ]]; then
-      vared -p "Delete worktree ${name}? " -c do_delete
+      vared -p "Delete worktree ${name}${state}? " -c do_delete
 
       if [[ "${do_delete}" == "y" ]]; then
         git worktree remove $l
@@ -94,7 +111,7 @@ wt-clean() {
         echo "invalid input: ${do_delete}"
       fi
     else
-      vared -p "Worktree ${name} has unstaged changes, delete anyway? " -c do_delete
+      vared -p "Worktree ${name} has unstaged changes, delete anyway${state}? " -c do_delete
 
       if [[ "${do_delete}" == "y" ]]; then
         git worktree remove -f $l
@@ -107,6 +124,58 @@ wt-clean() {
 
     unset do_delete
   done
+}
+
+# wrapper to ensure the binfmt tools are configured correctly
+binup() {
+  docker run --privileged --rm tonistiigi/binfmt --uninstall '*'
+  docker run --privileged --rm tonistiigi/binfmt --install all
+}
+
+pull-workloads() {
+  local tenant=$1
+  local days=${2:-7}
+
+  echo "Pulling last ${days} days of workloads for tenant ${tenant}"
+
+  for f in $(aws --profile prod s3api list-objects-v2 \
+      --bucket sstenant-${tenant} \
+      --prefix default/operator/admissions/ \
+      --query "Contents[?LastModified>='$(date -u -d "-${days} days" +%Y-%m-%dT%H:%M:%SZ)'].Key" \
+      --output text); do
+    echo ${f}
+    mkdir -p $(dirname ${f})
+    aws s3 cp s3://sstenant-${tenant}/${f} ${f} --profile prod
+  done
+}
+
+tenant() {
+  for k v ( ${(@kv)tenants} ); do
+    if [[ "${1}" == "${k}" ]]; then
+      echo "${v}"
+      return
+    fi
+
+    if [[ "${1}" == "${v}" ]]; then
+      echo "${k}"
+      return
+    fi
+  done
+
+  echo "Unknown tenant: ${1}"
+  return 1
+}
+
+tenant_id() {
+  cat ~/.speedscale/config.yaml | yq -r ".tenants[]|select(.bucket == \"sstenant-${1}\").id"
+}
+
+vicurl() {
+  local url="$1"
+  local filename
+
+  filename=$(basename "$url")
+  curl -s "$url" | nvim -c "set ft=${filename##*.}" -c "set buftype=nofile" -
 }
 
 # only run once

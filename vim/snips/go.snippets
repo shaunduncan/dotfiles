@@ -15,7 +15,7 @@ endsnippet
 # fill in boilerplate for a test function
 snippet "^test" "test func" brtA
 func Test${1:XXX}(t *testing.T) {
-	t.Paralell()
+	t.Parallel()
 
 	scenarios := []struct{
 		name string
@@ -63,18 +63,35 @@ func (${1/\*?([A-Za-z]).*/\l$1/} *${1:Receiver}) ${2:name}(${3:ctx context.Conte
 }
 endsnippet
 
+snippet NEWFILE "new file template"
+package `!p snip.rv = package_name() `
+endsnippet
+
 # var assignment check to ensure that an interface is implemented
 snippet impl? "type implements interface" tA
 _ ${1:Interface} = (*${2:Type})(nil)
 endsnippet
 
 # fill in the ctx parameter for functions
-snippet ctx "fill in ctx func param" it
-ctx context.Context
+snippet '\(ctx' "fill in ctx func param" r
+(ctx context.Context
 endsnippet
 
 snippet "([a-zA-Z0-9_\-\.\(\)]+)\.\." "debug" rt
 fmt.Printf(">>> SMD: %s: %+v\n", "`!p snip.rv = match.group(1)`$1", `!p snip.rv = match.group(1)`) // FIXME: (sduncan) testing
 endsnippet
+
+snippet {\n "auto braces" A
+{
+	$1
+}
+endsnippet
+
+global !p
+def package_name():
+	import subprocess
+	abspath = os.path.abspath(os.path.expanduser(path))
+	return os.path.basename(os.path.dirname(abspath))
+endglobal
 
 # vi:ts=4:sw=4:sts=4:noet:

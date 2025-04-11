@@ -215,26 +215,38 @@ def get_memory():
 def get_battery(factor=10):
     status = []
 
-    try:
-        output = subprocess.check_output(b'upower -e 2>/dev/null | grep BAT', shell=True).strip().split(b'\n')
-    except Exception:
-        output = [b'']
+    # HACK for asahi
+    if 'asahi' in subprocess.check_output(['uname', '-r']).decode('utf8'):
+        name = ''
 
-    batteries = [s.strip() for s in output]
+        with open('/sys/class/power_supply/macsmc-battery/capacity', 'r') as f:
+            pct = int(f.read())
 
-    for battery in batteries:
-        _, _, name = battery.decode('utf8').rpartition('_')
-        name = name.replace('BAT', 'B')
+        with open('/sys/class/power_supply/macsmc-battery/status', 'r') as f:
+            state = f.read()
 
+        status.append((name, as_hearts(pct, factor=factor) + f' {pct}%'))
+    else:
         try:
-            state, pct = get_current_state(battery)
+            output = subprocess.check_output(b'upower -e 2>/dev/null | grep BAT', shell=True).strip().split(b'\n')
         except Exception:
-            state = ''
-            pct = 100
+            output = [b'']
 
-        status.append((name, as_hearts(pct, factor=factor)))
+        batteries = [s.strip() for s in output]
 
-    # f'{pct:.0f}% {name}{hearts}'.strip()
+        for battery in batteries:
+            _, _, name = battery.decode('utf8').rpartition('_')
+            name = name.replace('BAT', 'B')
+
+            try:
+                state, pct = get_current_state(battery)
+            except Exception:
+                state = ''
+                pct = 100
+
+            status.append((name, as_hearts(pct, factor=factor)))
+
+        # f'{pct:.0f}% {name}{hearts}'.strip()
 
     return ' '.join(
         f'{name}{hearts}'
@@ -268,7 +280,7 @@ def get_loadavg():
 
 def get_speedctl():
     try:
-        context = subprocess.check_output('speedctl config current-context 2>/dev/null', shell=True)
+        context = subprocess.check_output('grep "current-context" ~/.speedscale/config.yaml | awk "{print \\$NF}"', shell=True)
     except Exception:
         context = b'NO-CONTEXT'
 

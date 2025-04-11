@@ -1,15 +1,14 @@
-local vim = vim
-local vimgo = require('go')
-local utils = require('lsp.utils')
+-- go related setup
+
+local util = require('dotfiles.util')
 
 -- setup for go/gopls
-vimgo.setup({
+util.require('go').setup({
   tag_transform = false, -- check: gomodifytags -h (can set tag casing)
   gotests_template = 'testify',
   comment_placeholder = '',
   icons = { breakpoint = 'B', currentpos = '>' },
   verbose = false,
-  log_path = '/tmp/go.nvim.log',
 
   -- lsp settings: disable most of these and use settings i already have
   lsp_cfg = false,
@@ -38,7 +37,7 @@ vimgo.setup({
   goimports = 'gopls',
 
   -- build tags needed for local dev work
-  build_tags = 'smartdns,pcap,kafka',
+  build_tags = 'smartdns,pcap,kafka,osusergo',
 
   -- DAP
   dap_debug = true,
@@ -46,14 +45,14 @@ vimgo.setup({
   dap_debug_keymap = false,
 
   -- running tests
-  test_runner = 'go',
+  test_runner = 'gotestsum',
   verbose_tests = true,
   run_in_floaterm = true,
   floaterm = {
     autoclose = false,
     posititon = 'center', -- one of {`top`, `bottom`, `left`, `right`, `center`, `auto`}
-    width = 0.5,
-    height = 0.5,
+    width = 0.8,
+    height = 0.8,
     title_colors = 'ayu', -- table of colors for title, or a color scheme name
   },
 
@@ -65,7 +64,7 @@ vimgo.setup({
   null_ls_document_formatting_disable = true,
 })
 
-local gofmt_group = vim.api.nvim_create_augroup('nvim-gofmt', {clear = true})
+local gofmt_group = vim.api.nvim_create_augroup('nvim-gofmt', { clear = true })
 
 -- organize imports and format on save
 vim.api.nvim_create_autocmd('BufWritePre', {
@@ -75,14 +74,14 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     local wait_ms = 1000
 
     local params = vim.lsp.util.make_range_params()
-    params.context = {only = {'source.organizeImports'}}
+    params.context = { only = { 'source.organizeImports' } }
 
     local result = vim.lsp.buf_request_sync(0, 'textDocument/codeAction', params, wait_ms)
 
     for _, res in pairs(result or {}) do
       for _, r in pairs(res.result or {}) do
         if r.edit then
-          vim.lsp.util.apply_workspace_edit(r.edit, 'UTF-8')
+          vim.lsp.util.apply_workspace_edit(r.edit, 'utf-8')
         else
           vim.lsp.buf.execute_command(r.command)
         end
@@ -95,10 +94,10 @@ vim.api.nvim_create_autocmd('BufWritePre', {
 
 local on_attach = function(client, bufnr)
   -- first get the defaults
-  utils.on_attach(client, bufnr)
+  require('dotfiles.lsp.util').on_attach(client, bufnr)
 
   local function mapkey(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
-  local opts = { noremap=true, silent=true }
+  local opts = { noremap = true, silent = true }
 
   -- more explicit options provided by the plugin
   -- FIXME: GoImpl needs to be wrapped to automatically do something like
@@ -113,7 +112,7 @@ local on_attach = function(client, bufnr)
   mapkey('n', '<leader>gat', ':GoAddTest<CR>', opts)
 
   -- running tests
-  local argstr = ' -a -test.timeout=3s<CR>'
+  local argstr = ' -a -test.timeout=60s<CR>'
 
   -- mapkey('n', '<leader>gt', ':GoTestFunc' .. argstr, opts)
   mapkey('n', '<leader>gT', ':GoTestSum -f testname<CR>', opts)
@@ -129,11 +128,10 @@ local on_attach = function(client, bufnr)
   -- mapkey('n', '<leader>gl', ':GoCodeLenAct<CR>', opts)
 end
 
-local lspconfig = require('lspconfig')
 local lsp_capabilities = vim.lsp.protocol.make_client_capabilities()
 
 local get_current_gomod = function()
-  local gomod = vim.fn.system {'go', 'env', 'GOMOD'}
+  local gomod = vim.fn.system { 'go', 'env', 'GOMOD' }
 
   if gomod == '/dev/null' then
     return nil
@@ -150,12 +148,15 @@ local get_current_gomod = function()
   return mod_name
 end
 
-lspconfig.gopls.setup({
-  cmd = {'gopls', '--remote=auto'},
+
+-- required modules
+util.require('lspconfig').gopls.setup({
+  cmd = { 'gopls', '-remote=auto' },
   capabilities = lsp_capabilities,
   on_attach = on_attach,
   settings = {
     gopls = {
+      buildFlags = { '-tags=smartdns,pcap,kafka,osusergo' },
       analyses = {
         slog = false,
         unusedparams = false,

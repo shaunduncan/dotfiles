@@ -1,85 +1,134 @@
 ; vi:ft=gitconfig
 [core]
+    abbrev = 8
+    checkStat = minimal
+    untrackedCache = true
+    mergeOptions = --no-edit
+
+    ; enable the working directory fs monitor daemon - not available on linux but possible using
+    ; fsmonitor-watchman githook. also see https://facebook.github.io/watchman/docs
+    ; fsmonitor = true
+
     ; hooksPath = ~/.config/git/hook
-    ; use less by default, use the pager section for specific commands
+ 
     ; pager = less -FRSX --shift 1 --incsearch
     pager = delta
-    abbrev = 8
+
 [user]
     name = Shaun Duncan
     email = shaun.duncan@gmail.com
+
+; includes: specifically to make sure work repos have work emails
+[includeIf "hasconfig:remote.*.url:**speedscale/**"]
+	path = ~/.config/dotfiles/git_config_work
+[includeIf "hasconfig:remote.*.url:**shaun35/**"]
+	path = ~/.config/dotfiles/git_config_work
+
+; advice messages to squash
 [advice]
-    ; which things do we not need to see hints for
+    detachedHead = false
+    implicitIdentity = false
     statusHints = false
+    skippedCherryPicks = false
+
+; git-blame options
 [blame]
-    date = format:%Y-%m-%d %H:%M
     coloring = repeatedLines
+    date = format:%Y-%m-%d %H:%M
+    markUnblamableLines = false
+    markIgnoredLines = false
+
+; branch configuration: 
 [branch]
+    ; `git checkout <branch>` should track the remote counterpart
+    ; `git checkout -b <branch>` should track the branch from which it was created
     autoSetupMerge = always
-    ; if you want git pull to rebase and not merge
-    ; autoSetupRebase = always
-    ; sort = ...whatever?
+
+    ; `get pull` should rebase instead of merging for linear history
+    autoSetupRebase = always
+
+    ; sort showing branches with recent commits first
+    sort = -committerdate
+
 [checkout]
     defaultRemote = origin
+
+    ; automatically add `--track` if there's the same branch in a remote
     guess = true
+
     ; use the number of cores
     workers = -1
+
 [color]
     ui = auto
-[color "blame"]
-    repeatedLines = "#555555"
+
 [color "branch"]
     current = reverse green
     remote = magenta
     plain = white
     local = white
+
+; for git log --decorate, only takes effect if not specifying a default format
 [color "decorate"]
     HEAD = red
     branch = red
     remoteBranch = dim white
     tag = magenta
+
 [color "status"]
     added = green
     updated = green
     changed = yellow
     untracked = blue
-    ; localBranch = green
-    ; remoteBranch = red
     unmerged = reverse blue
+
+
 [column]
     ; turn on column output with equal sized columns
     ; customize these for sections: branch, clean, status, tag
-    ui = always,column,nodense
-[commit]
-    ; template =
+    ui = always,column,dense
+
 [diff]
     algorithm = histogram
-    tool = vimdiff
+    tool = nvimdiff
+[diff "json"]
+    textconv = python -m json.tool
 [difftool]
-    prompt = false
+    prompt = true
+[difftool "nvimdiff"]
+    cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+
 [fetch]
     prune = true
+    pruneTags = true
+    parallel = 20
+
 [format]
     pretty = standard
-[instaweb]
-    local = true
-    port = 8080
+    notes = true  
+
 [interactive]
     ; use delta for "git add -p"
     diffFilter = delta --color-only
-    ; enable if you want to avoid pressing enter for thing like "git add -p"
-    ; singleKey = true
+    singleKey = true
+    
 [log]
     abbrevCommit = true
     date = format:%Y-%m-%d %H:%M
-    ; excludeDecoration = remotes
+
 [merge]
-    conflictStyle = merge
-    suppressDest = true
-    tool = vimdiff
+    conflictStyle = zdiff3
+    autoStash = true
+    tool = nvimdiff
+[mergetool]
+    prompt = false
+[mergetool "nvimdiff"]
+    cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+
 [pager]
     l = less
     tablelog = less
+
 [pretty]
     ; maybe add %<(25,trunc) to %ae, dunno about commit message, maybe wrap?
     ; standard  = format:%C(reverse yellow) %h %C(noreverse) %C(green)%an %C(blue)%ar%C(magenta)%d%C(auto)%+s
@@ -99,22 +148,34 @@
 %C(auto)%x1f\
 %C(red)%D\
 %C(auto)%x1f
+
 [pull]
     ff = only
+    rebase = true
+
+[rebase]
+    autoStash = true
+
 [push]
 	default = current
+
 [remote]
 	pushDefault = origin
+
 [status]
     branch = false
     showStash = true
     showUntrackedFiles = all
     showIncludeUntracked = true
+
 [tag]
     ; sort tags as if they were version numbers
     sort = v:refname
 
+; aliases
 [alias]
+    resolve = "!nvim -c DiffviewOpen"
+
     ; useful shorthand variants
     wt = worktree
 
@@ -122,7 +183,7 @@
     unadd = restore --staged
 
     ; fetch+pull
-    up = "!git fetch && git pull"
+    up = pull --rebase --autostash
 
     ; fixup
     fixup = commit --amend -a --no-edit
@@ -163,6 +224,7 @@
 
     ; show the log as a graph, add --all to have a global view of all refs
     ; potentially use --date-order
+    vlog = log --graph --decorate --decorate-refs=tags --all --single-worktree --topo-order --pretty=quick --merges
     g = log --graph --decorate --decorate-refs=tags --all --single-worktree --topo-order --pretty=quick
     gw = log --graph --decorate --decorate-refs=tags --exclude=refs/notes/* --all --single-worktree --topo-order --pretty=standard
     graph = g
@@ -251,3 +313,17 @@
 
     ; disable line wrapping
     ; wrap-max-lines = 0
+[uploadpack]
+	allowFilter = true
+[feature]
+	experimental = true
+	manyFiles = true
+[index]
+    skipHash = true
+    version = 4
+[pack]
+    allowPackReuse = multi
+    threads = 0
+    useBitmaps = true
+    useBitmapBoundaryTraversal = true
+    useSparse = true

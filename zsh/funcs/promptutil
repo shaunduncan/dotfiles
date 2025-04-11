@@ -87,10 +87,16 @@ __ps_context() {
   #
   # - `↑name` if we are in a subshell with name being the command of the parent process
   # - `E` when `direnv` has been activated
+  # - `V` when there are suspended vim/nvim jobs
   local markers=()
 
   # if tmux is running, then $SHLVL will be 1 more than we want, so adjust it
   local shlvl=$(( $SHLVL - ${+TMUX} ))
+
+  local vimjobs="$(jobs | grep -E 'suspended\s+(vim|nvim)')"
+  if [[ -n "${vimjobs}" ]]; then
+    markers+="V"
+  fi
 
   # are we in a subshell? note that this shows the command name for the parent process because there
   # is more than one way we might be in a subshell (like vim `:shell`) so it's nice to know _who_
