@@ -160,6 +160,9 @@ lazyload nvm
 # load my function junk drawer
 autoload -Uz toolbelt && toolbelt
 
+# fzf utilities
+autoload -Uz fzfutils && fzfutils
+
 # load my prompt creation utilities
 autoload -Uz promptutil && promptutil
 # }}}
@@ -594,6 +597,16 @@ alias vimwiki="vim -c 'VimwikiIndex'"
 alias vimw=vimwiki
 alias vw=vimwiki
 alias egrep="grep -E"
+# }}}
+
+# fzf {{{
+if [[ -n $(whence fzf) ]]; then
+  source <(fzf --zsh)
+
+  # fzf options
+  # export 
+  export FZF_CTRL_R_OPTS="--height 25% --border sharp --layout reverse"
+fi
 # }}}
 
 # }}}

@@ -22,7 +22,6 @@ return {
       vim.cmd([[
         aug plugin-ultisnips | au!
           au BufNewFile *.h execute "normal ionce\<M-M>\<ESC>"
-          au BufNewFile *.go execute "normal iNEWFILE\<M-M>\<ESC>"
         aug end
       ]])
     end,

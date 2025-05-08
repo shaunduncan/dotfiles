@@ -69,6 +69,7 @@ return {
       vim.api.nvim_set_hl(0, 'DapStopped', { link = 'DiagnosticWarn' })
 
       vim.fn.sign_define('DapBreakpoint', { text = '⏹', texthl = 'DapBreakpoint', linehl = '', numhl = '' })
+      -- vim.diagnostic.config({ numhl = { enabled = true, severity = { error = 'DapBreakpoint' } } })
       vim.fn.sign_define('DapBreakpointRejected', { text = 'R', texthl = 'DapBreakpoint', linehl = '', numhl = '' })
       vim.fn.sign_define('DapLogPoint', { text = 'F', texthl = '', linehl = '', numhl = 'DapLogPoint' })
       vim.fn.sign_define('DapStopped', { text = '▶', texthl = 'DapStopped', linehl = '', numhl = '' })

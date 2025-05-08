@@ -168,7 +168,33 @@ return {
       'neovim/nvim-lspconfig',
       'nvim-treesitter/nvim-treesitter',
     },
-    build = ':lua require("go.install").update_all_sync()',
+    build = ':lua require("go.install").update_all()',
+    init = function()
+      -- auto insert package name. note that this doesn't use `go list` because it can be slow to return
+      vim.api.nvim_create_autocmd('BufNewFile', {
+        pattern = '*.go',
+        callback = function()
+          if vim.fn.getline(1) == '' then
+            -- default: "main"
+            local pkgname = 'main'
+            local filedir = vim.fn.expand('%:p:h')
+
+            local curdir = vim.fn.getcwd()
+            vim.fn.chdir(filedir)
+
+            local gomod = vim.fn.trim(vim.fn.system('go env GOMOD'))
+            if vim.v.shell_error == 0 then
+              if gomod ~= '/dev/null' and filedir ~= vim.fn.fnamemodify(gomod, ':h') then
+                pkgname = vim.fn.fnamemodify(filedir, ':t')
+              end
+            end
+
+            vim.api.nvim_put({ 'package ' .. pkgname, '' }, 'l', false, true)
+            vim.fn.chdir(curdir)
+          end
+        end
+      })
+    end,
     config = function()
       vim.cmd [[
         aug my-nvim-guihua | au!
@@ -177,7 +203,7 @@ return {
       ]]
 
       require('go').setup({
-        tag_transform = false,       -- check: gomodifytags -h (can set tag casing)
+        tag_transform = false, -- check: gomodifytags -h (can set tag casing)
         gotests_template = 'testify',
         comment_placeholder = '',
         icons = { breakpoint = 'B', currentpos = '>' },
@@ -223,17 +249,17 @@ return {
         run_in_floaterm = true,
         floaterm = {
           autoclose = false,
-          posititon = 'center',         -- one of {`top`, `bottom`, `left`, `right`, `center`, `auto`}
+          posititon = 'center', -- one of {`top`, `bottom`, `left`, `right`, `center`, `auto`}
           width = 0.8,
           height = 0.8,
-          title_colors = 'ayu',         -- table of colors for title, or a color scheme name
+          title_colors = 'ayu', -- table of colors for title, or a color scheme name
         },
 
         -- don't use luasnip
         luasnip = false,
 
         -- others
-        disable_per_project_cfg = false,       -- projects: .gonvim/init.lua
+        disable_per_project_cfg = false, -- projects: .gonvim/init.lua
         null_ls_document_formatting_disable = true,
       })
     end,

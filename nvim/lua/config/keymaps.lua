@@ -61,6 +61,7 @@ vim.keymap.set({ 'n', 'v' }, '<leader>t4', ':setlocal ts=4 sw=4 sts=4<CR>', { no
 -- )
 
 -- TODO: fixme so it works with any language?
+vim.cmd [[nn <leader>C :center 80<cr>0v1lr-<esc>40A-<esc>d80<bar>hhvbr<space><esc>yyppVr-kk.]]
 -- vim.keymap.set(
 --   'n',
 --   '<leader>C',

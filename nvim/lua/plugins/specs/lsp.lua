@@ -19,7 +19,8 @@ return {
   --   },
   -- },
   {
-    'gfanto/fzf-lsp.nvim',
+    -- using my fork that addresses deprecated function calls
+    'shaunduncan/fzf-lsp.nvim',
     dependencies = {
       'nvim-lua/plenary.nvim',
       'junegunn/fzf.vim',
@@ -36,7 +37,6 @@ return {
     dependencies = {
       'williamboman/mason.nvim',
       'hrsh7th/cmp-nvim-lsp',
-      'gfanto/fzf-lsp.nvim',
     },
     config = function()
       require('mason').setup({
@@ -228,7 +228,20 @@ return {
           },
         },
         before_init = function(_, cfg)
-          cfg.settings.gopls['formatting.local'] = utils.get_current_gomod()
+          if vim.fn.executable('go') ~= 1 then
+            print('no go executable')
+            return
+          end
+
+          local module = vim.fn.trim(vim.fn.system('go list -m'))
+          if vim.v.shell_error ~= 0 then
+            return
+          end
+
+          -- convert to a list if there are multiples in a workspace
+          module = module:gsub('\n', ',')
+
+          cfg.settings.gopls['formatting.local'] = module
         end,
       })
 
@@ -252,7 +265,7 @@ return {
           '--import-insertions',
           '--completion-style=detailed',
           '--function-arg-placeholders',
-          '-j', nproc,
+          '-j' .. nproc,
         },
       })
 
