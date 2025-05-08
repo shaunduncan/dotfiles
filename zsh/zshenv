@@ -2,6 +2,8 @@
 
 export ZSH=$HOME/.zsh
 
+export PATH=${PATH}:/usr/sbin
+
 # where can we fine my dotfiles
 export DOTDIR=$HOME/.config/dotfiles
 
@@ -42,6 +44,8 @@ export ARCHFLAGS="-arch $CPUTYPE"
 export PAGER=less
 
 export FZF_DEFAULT_OPTS="--exact"
+
+export MOZ_ENABLE_WAYLAND=1
 
 # options:
 # -F: don't page if the whole buffer fits on screen
@@ -91,5 +95,12 @@ elif (( $__is_macos )); then
   export LSCOLORS=Exfxcxdxbxhedxhbagacad
 fi
 
+# export XDG_DATA_DIRS=${XDG_DATA_DIRS}:/var/lib/flatpak/exports/share:/home/sduncan/.local/share/flatpak/exports/share
+
+# xfce: make qt apps look like gtk styling
+export QT_QPA_PLATFORMTHEME=qt5ct
+
 # load secrets if they exist
 [[ -f $HOME/.secrets.env ]] && source $HOME/.secrets.env
+
+export MOZ_GMP_PATH=/var/lib/widevine/gmp-widevinecdm/system-installed

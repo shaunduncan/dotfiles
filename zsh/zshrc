@@ -29,7 +29,7 @@ fi
 # history
 export HISTFILE=$HOME/.zsh_history
 export HISTSIZE=10000
-export SAVEHIST=1000000
+export SAVEHIST=10000
 export HISTORY_IGNORE="nohist *"
 
 # allow relative build dir paths
@@ -55,7 +55,6 @@ setopt hist_expire_dups_first   # get rid of duplicates first when trimming
 setopt hist_fcntl_lock          # use fcntl for file locking when possible
 setopt hist_find_no_dups        # ignore duplicates in line editor
 setopt hist_ignore_all_dups     # delete the older entry if the new one duplicates
-setopt hist_ignore_space        # ignore space prefixed lines
 setopt hist_no_store            # don't add `history` commands
 setopt hist_verify              # history expansion without executing
 setopt no_hist_beep             # no beeps
@@ -100,7 +99,7 @@ setopt prompt_percent  # support % expansion
 setopt prompt_subst    # support parameter expansion
 
 # mode def
-# setopt vi no_emacs no_dvorak
+setopt no_emacs no_dvorak
 
 #}}}
 
@@ -160,6 +159,9 @@ lazyload nvm
 
 # load my function junk drawer
 autoload -Uz toolbelt && toolbelt
+
+# fzf utilities
+autoload -Uz fzfutils && fzfutils
 
 # load my prompt creation utilities
 autoload -Uz promptutil && promptutil
@@ -250,6 +252,8 @@ zstyle ':completion:*:*:ln:*' verbose true
 zstyle ':completion:*:*:ping:*' extra-verbose true
 zstyle ':completion:*:*:ping:*' expand 'suffix'
 zstyle ':completion:*:*:ping:*' hosts
+
+zstyle ':completion:*:urls' urls http:// https://
 
 # match spec: simple, then case-insensitive, then outward expansion left/right
 #
@@ -401,7 +405,18 @@ alias l='ls -l'
 
 # platform specific tools
 if (( $__is_linux )); then
-  alias pbcopy='xclip -selection c'
+  # because xfce and wayland's relationship status is "it's complicated"
+  if [[ "${(L)XDG_CURRENT_DESKTOP:-}" == "xfce" ]]; then
+    alias pbcopy='xclip -sel c'
+    alias pbpaste='xclip -sel c -o'
+  else
+    # make sure newlines are trimmed
+    alias wl-copy='wl-copy -n'
+    alias wl-paste='wl-paste -n'
+
+    alias pbcopy=wl-copy
+    alias pbpaste=wl-paste
+  fi
 fi
 
 if (( $__is_macos )); then
@@ -457,7 +472,7 @@ zstyle ':vcs_info:*' actionformats "%f%F{red}${ps_icons[branch]}%b[%a]%f "
 # }}}
 
 # prompts
-PS1='%F{yellow}%T%f ${ps_context_}${ps_userinfo_}${ps_dirpath_}${vcs_info_msg_0_}${ps_mode_}'
+PS1='%F{yellow}%D{%H:%M}%f ${ps_context_}${ps_userinfo_}${ps_dirpath_}${vcs_info_msg_0_}${ps_mode_}'
 # }}}
 
 # OTHER CONFIG {{{
@@ -468,6 +483,7 @@ export GO111MODULE=on
 # NOTE: $GOROOT is specific to whatever is brew linked when the shell is started, but there's not
 # that much in the /bin dir anyway. GOPATH/bin is more important anyway, so just use that (it's
 # always ~/go/bin anyway
+inspath /opt/go/bin
 inspath ${HOME}/go/bin
 
 # don't use gosumdb because you work with private repos
@@ -480,8 +496,12 @@ export DIRENV_LOG_FORMAT=
 # }}}
 
 # speedscale {{{
-export SPEEDCTL_HOME=/Users/sduncan/.speedscale
+export SPEEDCTL_HOME=${HOME}/.speedscale
+export SPEEDSCALE_HOME=${SPEEDCTL_HOME}
+export COREPACK_ENABLE_STRICT=0
 inspath $SPEEDCTL_HOME
+alias s='speedctl'
+alias sx='s config use-context'
 # }}}
 
 # kubectl {{{
@@ -505,6 +525,11 @@ inspath $HOME/.krew/bin
 if [[ -d /opt/gcloud ]]; then
   inspath /opt/gcloud/bin
   source /opt/gcloud/completion.zsh.inc
+fi
+
+# alternate location (only for autocompletion)
+if [[ -d /usr/lib64/google-cloud-sdk ]]; then
+  source /usr/lib64/google-cloud-sdk/completion.zsh.inc
 fi
 # }}}
 
@@ -562,13 +587,26 @@ DOCKER_HIDE_LEGACY_COMMANDS=1
 # }}}
 
 # openjdk {{{
-export PATH=$(brew --prefix java)/bin:${PATH}
+if (( $__is_macos )); then
+  export PATH=$(brew --prefix java)/bin:${PATH}
+fi
 # }}}
 
 # misc {{{
 alias vimwiki="vim -c 'VimwikiIndex'"
 alias vimw=vimwiki
 alias vw=vimwiki
+alias egrep="grep -E"
+# }}}
+
+# fzf {{{
+if [[ -n $(whence fzf) ]]; then
+  source <(fzf --zsh)
+
+  # fzf options
+  # export 
+  export FZF_CTRL_R_OPTS="--height 25% --border sharp --layout reverse"
+fi
 # }}}
 
 # }}}
@@ -577,7 +615,11 @@ alias vw=vimwiki
 typeset -gU cdpath fpath path
 
 # TODO: evaluate
-source $(brew --prefix zsh-autosuggestions)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+if (( $__is_macos )); then
+  source $(brew --prefix zsh-autosuggestions)/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+else
+  # source /usr/local/share/zsh-autosuggestions/zsh-autosuggestions.zsh
+fi
 
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
 ZSH_AUTOSUGGEST_STRATEGY=(completion)
@@ -628,7 +670,12 @@ bindkey -M viins '^ ' autosuggest-accept # ctrl-space
 # start disabled
 # _zsh_autosuggest_disable
 
-source $(brew --prefix zsh-history-substring-search)/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+if (( $__is_macos )); then
+  source $(brew --prefix zsh-history-substring-search)/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+else
+  source /usr/local/share/zsh-history-substring-search/zsh-history-substring-search.zsh
+fi
+
 bindkey -M viins '^K' history-substring-search-up
 bindkey -M viins '^J' history-substring-search-down
 bindkey -M vicmd '^K' history-substring-search-up
@@ -646,3 +693,19 @@ HISTORY_SUBSTRING_SEARCH_HIGHLIGHT_NOT_FOUND='bg=red,fg=black'
 export NOATTEST=1
 
 alias j=jira
+
+if [[ -f ${HOME}/.linkerd2/bin/linkerd ]]; then
+  inspath ${HOME}/.linkerd2/bin
+  compinit_command linkerd
+fi
+
+# pspg (psql pager) {{{
+export PSQL_PAGER="pspg --style=17 --double-header"
+# }}}
+
+# tabtab source for electron-forge package
+# uninstall by removing these lines or running `tabtab uninstall electron-forge`
+# [[ -f /home/sduncan/.npm/_npx/6913fdfd1ea7a741/node_modules/tabtab/.completions/electron-forge.zsh ]] && . /home/sduncan/.npm/_npx/6913fdfd1ea7a741/node_modules/tabtab/.completions/electron-forge.zsh# this worked
+# this worked
+
+source /home/sduncan/.config/broot/launcher/bash/br

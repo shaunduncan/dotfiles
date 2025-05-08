@@ -6,23 +6,41 @@ priority 10
 # add a note statement with my user name. if the current file has a commentstring defined then it
 # will be used as a prefix for the note entered
 snippet "(todo|fixme|xxx|note)" "code notes" brtA
-`!p
+`!p 
+# start/end comment strings
+c0, c1 = ctoken(0), ctoken(1)
+
+# modify the label
+label = match.group(1).upper()
+
+# should this include the username
 if snip.opt('g:my_snips_sign_todos', 1):
-    t[1] = f"({vim.eval('$USER')})"
-snip.rv = cms_token(0) + ' ' + match.group(1).upper()
-`: $1 `!p snip.rv = cms_token(1)`
+    user = '(' + os.getlogin() + ')'
+else:
+    user = ''
+
+snip.rv = c0 + ' ' + label`: ${1:`!p snip.rv = user`} $0 `!p snip.rv = c1`
+endsnippet
+
+snippet gobuild "go:build directive" bA
+`!v printf(substitute(&cms, ' %s', '%s', 'g'), 'go:build')` ${1:directive}
+$0
+endsnippet
+
+snippet goignore "go:build ignore" bA
+`!v printf(substitute(&cms, ' %s', '%s', 'g'), 'go:build ignore')`
+$0
+endsnippet
+
+snippet modeline "vim modeline"
+`!v printf(&cms, printf('vi:ft=%s:ts=%i:sts=%i:sw=%i:%s', &ft, &ts, &sts, &sw, &expandtab ? 'et' : 'noet'))`
 endsnippet
 
 global !p
-
-# get a numbered part of a comment string
-def cms_token(n):
-    cms = vim.eval('&commentstring')
-    tokens = [s.strip() for s in cms.split('%s') if s.strip()]
-
+def ctoken(n):
+    tokens = [s.strip() for s in vim.eval('&commentstring').split('%s') if s.strip()]
     try:
         return tokens[n]
     except IndexError:
         return ''
-
 endglobal

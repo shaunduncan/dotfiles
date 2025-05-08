@@ -1,0 +1,7 @@
+vendor
+.git
+go.sum
+*_mock.go
+node_modules
+alacritty.recording
+.pnpm-store

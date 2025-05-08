@@ -3,7 +3,7 @@ Include /Users/sduncan/.colima/ssh_config
 Compression yes
 ForwardAgent yes
 ServerAliveInterval 20
-PreferredAuthentications publickey
+PreferredAuthentications publickey,password,keyboard-interactive
 Include conf.d/*
 
 Host * !gitlab.com !github.com

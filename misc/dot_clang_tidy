@@ -1,0 +1,22 @@
+---
+Checks: 'bugprone-*,clang-diagnostic-*,clang-analyzer-*,concurrency-*,cppcoreguidelines-*,misc-*,modernize-*,mpi-*,performance-*'
+WarningsAsErrors: ''
+HeaderFileExtensions:
+  - ''
+  - h
+  - hh
+  - hpp
+  - hxx
+ImplementationFileExtensions:
+  - c
+  - cc
+  - cpp
+  - cxx
+HeaderFilterRegex: ''
+FormatStyle: file
+User: sduncan
+CheckOptions:
+  cppcoreguidelines-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic: 'true'
+SystemHeaders: false
+...
+
