@@ -93,3 +93,13 @@ setcms({ 'c', 'cpp' }, '// %s')
 
 -- protobuf
 setcms('proto', '// %s')
+
+-- don't override my configuration
+vim.api.nvim_create_autocmd('FileType', {
+  group = aug,
+  pattern = '*',
+  callback = function()
+    vim.bo.textwidth = 110
+    vim.bo.formatoptions = 'crqnj'
+  end,
+})

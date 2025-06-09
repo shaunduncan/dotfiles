@@ -3,12 +3,19 @@
 --------------------------------------------------------------------------------
 
 return {
+  {
+    'cstrahan/vim-capnp',
+    config = function()
+    end,
+  },
+
   -- enhanced markdown experience
   {
     'MeanderingProgrammer/render-markdown.nvim',
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
     },
+    ft = { 'markdown', 'codecompanion', 'Avante' },
     config = function()
       local md = require('render-markdown')
 
@@ -22,6 +29,7 @@ return {
           'hello',
           'codecompanion',
           'gitcommit',
+          'Avante',
         },
         quote = {
           repeat_linebreak = true,
@@ -119,7 +127,7 @@ return {
 
       vim.api.nvim_create_autocmd('FileType', {
         group = aug,
-        pattern = { 'markdown', 'codecompanion' },
+        pattern = { 'markdown', 'codecompanion', 'Avante' },
         callback = function()
           -- quick access to toggle rendering
           vim.api.nvim_buf_set_keymap(

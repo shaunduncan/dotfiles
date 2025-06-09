@@ -3,6 +3,17 @@
 --------------------------------------------------------------------------------
 
 return {
+  {
+    'ibhagwan/fzf-lua',
+    opts = {
+      fzf_opts = {
+        ['--ansi'] = true,
+        ['--info'] = 'inline-right',
+        ['--border'] = 'sharp',
+        ['--preview-window'] = 'up,60%,border-sharp',
+      },
+    },
+  },
   -- replacement for vim-whichkey
   {
     'folke/which-key.nvim',

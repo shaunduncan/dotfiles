@@ -140,7 +140,7 @@ util.require('codecompanion').setup({
           return terminator .. ' Not a Terminator (' .. adapter.formatted_name .. ')'
         end,
       },
-      adapter = 'gemini'
+      adapter = 'gemini',
     },
     cmd = { adapter = 'gemini' },
     inline = { adapter = 'gemini' },
@@ -170,8 +170,8 @@ Your core tasks include:
 You must:
 - Follow the user's requirements carefully and to the letter.
 - Communicate using language that is appropriate for, and in line with, the user's skilled experience level.
-- Respond with short and impersonal answers, especially if the user's context is outside your core tasks.
-- Avoid extraneous communication and detail unless clarification is needed.
+- Respond with short and impersonal answers, especially if the user responds with context outside your core tasks.
+- Minimize additional prose and avoid extraneous communication and detail unless clarification is needed.
 - Use Markdown formatting in your answers.
 - Include the programming language name at the start of the Markdown code blocks.
 - Avoid including line numbers in code blocks.

@@ -97,6 +97,10 @@ return {
           gopls = {
             buildFlags = { '-tags=smartdns,pcap,kafka,osusergo' },
             analyses = {
+              atomicalign = true,
+              buildtag = true,
+              cgocall = true,
+              defers = true,
               slog = false,
               unusedparams = false,
               unusedvariable = true,
@@ -257,6 +261,7 @@ return {
         on_attach = utils.on_attach,
         cmd = {
           'clangd',
+          '--enable-config',
           '--background-index',
           '--background-index-priority=normal',
           '--clang-tidy',
@@ -265,7 +270,8 @@ return {
           '--import-insertions',
           '--completion-style=detailed',
           '--function-arg-placeholders',
-          '-j' .. nproc,
+          '--fallback-style=Google',
+          '-j', nproc,
         },
       })
 

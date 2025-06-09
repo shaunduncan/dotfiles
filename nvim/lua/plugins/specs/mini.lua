@@ -26,22 +26,26 @@ return {
   {
     'echasnovski/mini.diff',
     version = '*',
-    opts = {
-      view = {
-        style = 'sign',
-      },
-      delay = {
-        text_change = 100,
-      },
-      mappings = {
-        apply = 'ga',
-        reset = 'gr',
-      }
-    },
+    config = function()
+      local diff = require('mini.diff')
+      diff.setup({
+        source = diff.gen_source.none(),
+        view = {
+          style = 'sign',
+        },
+        delay = {
+          text_change = 100,
+        },
+        mappings = {
+          apply = 'ga',
+          reset = 'gr',
+        }
+      })
+    end
   },
 
   -- picker
-  { 'echasnovski/mini.pick',  version = '*' },
+  -- { 'echasnovski/mini.pick',  version = '*' },
 
   -- notifications
   {

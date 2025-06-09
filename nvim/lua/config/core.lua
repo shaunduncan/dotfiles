@@ -11,6 +11,8 @@ vim.o.fileformats = 'unix'
 vim.opt.backspace = { 'indent', 'eol', 'start' }
 vim.o.history = 1000
 
+vim.o.laststatus = 2
+
 -- enable setting window titles
 vim.o.title = true
 
